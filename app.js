@@ -11,6 +11,7 @@ import cors from "cors";
 
 import userRoutes from "./routes/user.routes.js";
 import clientesRoutes from "./routes/clients.routes.js";
+import fornecedoresRoutes from "./routes/fornecedores.routes.js";
 //import adminRoutes from "./routes/admin.routes.js";
 //import auditRoutes from "./routes/audit.routes.js";
 
@@ -30,6 +31,7 @@ app.use(authMiddleware);
 //app.use(`/`, adminRoutes);
 //app.use(`/`, auditRoutes);
 app.use("/clientes/", clientesRoutes);
+app.use("/fornecedores/", fornecedoresRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
