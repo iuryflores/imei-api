@@ -11,10 +11,10 @@ const router = Router();
 //Create User
 router.post("/user/auth/signup", async (req, res, next) => {
   //Get data from body
-  let { full_name, email, password, cpf, entidade } = req.body;
+  let { newUsername, email, confirmPassword, cpf } = req.body;
 
   //Check if all fields are filled
-  if (!full_name || !email || !password || !cpf) {
+  if (!newUsername || !email || !confirmPassword || !cpf) {
     return res.status(400).json({ msg: "Todos os campos são obrigatórios!" });
   }
 
@@ -27,7 +27,7 @@ router.post("/user/auth/signup", async (req, res, next) => {
   //Try to add user
   try {
     //Check if user exists
-    const foudedUser = await User.findOne({ email, entidade });
+    const foudedUser = await User.findOne({ email });
     if (foudedUser) {
       return res.status(400).json({
         msg: `Já existe um usuário com este email "${foudedUser.email}"!`,
@@ -36,22 +36,21 @@ router.post("/user/auth/signup", async (req, res, next) => {
 
     //Generate passwordHash
     const salt = bcrypt.genSaltSync(10);
-    const passwordHash = bcrypt.hashSync(password, salt);
+    const passwordHash = bcrypt.hashSync(confirmPassword, salt);
 
     //Create new user
 
     const newUser = await User.create({
-      full_name,
+      full_name: newUsername,
       email,
       passwordHash,
       cpf,
-      entidade,
     });
 
     //Get id from newUser
     const { _id } = newUser;
 
-    return res.status(201).json({ full_name, email, _id, entidade });
+    return res.status(201).json({ email, _id });
   } catch (error) {
     next(error);
   }
@@ -59,11 +58,11 @@ router.post("/user/auth/signup", async (req, res, next) => {
 
 //Login
 router.post("/user/auth/login", async (req, res, next) => {
-  const { email, password, entidade } = req.body;
+  const { username, password } = req.body;
 
   try {
     //Look for user by email
-    const user = await User.findOne({ email, entidade });
+    const user = await User.findOne({ email: username });
 
     //Check if email was fouded
     if (!user) {
@@ -85,7 +84,6 @@ router.post("/user/auth/login", async (req, res, next) => {
     const payload = {
       id: user._id,
       email: user.email,
-      entidade: user.entidade,
     };
 
     //Create token
