@@ -29,7 +29,7 @@ router.post("/new/", async (req, res, next) => {
   if (fornecedorExists) {
     return res
       .status(400)
-      .json({ msg: "Fornecedor(a) já foi cadadastrado(a)!" });
+      .json({ msg: "Fornecedor(a) já foi cadastrado(a)!" });
   }
   try {
     const newFornecedor = await Fornecedor.create({

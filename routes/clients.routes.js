@@ -16,4 +16,12 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+router.post('/new/', async (req,res,next)=>{
+  try {
+    
+  } catch (error) {
+    
+  }
+})
+
 export default router
