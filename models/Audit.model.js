@@ -16,6 +16,8 @@ const AuditSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Imeis",
     },
+    fornecedor_id: { type: Schema.Types.ObjectId, ref: "Fornecedor" },
+    cliente_id: { type: Schema.Types.ObjectId, ref: "Clients" },
     user_id: {
       type: Schema.Types.ObjectId,
       ref: "Users",
