@@ -7,6 +7,7 @@ const imeis = new Schema(
     price: { type: Number },
     brand: { type: String, required: true },
     status: { type: Boolean, default: true },
+    buy_id: { type: Schema.Types.ObjectId, ref: "Buys" },
   },
   { timestamps: true }
 );
