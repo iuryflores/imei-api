@@ -16,6 +16,19 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+router.get("/busca/:term", async (req, res, next) => {
+  const { term } = req.params;
+
+  try {
+    const filteredFornecedores = await Fornecedor.find({
+      full_name: { $regex: new RegExp(term, "i") }, // Pesquisa case-insensitive
+    }).sort({ full_name: 1 });
+    return res.status(200).json(filteredFornecedores);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 router.post("/new/", async (req, res, next) => {
   console.log(req.body);
 
