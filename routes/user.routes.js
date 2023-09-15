@@ -1,5 +1,6 @@
 import { Router } from "express";
 import User from "../models/User.model.js";
+import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -90,6 +91,15 @@ router.post("/user/auth/login", async (req, res, next) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "8h",
     });
+
+    if (token) {
+      await Audit.create({
+        descricao: "Fez login",
+        operacao: "LOGIN",
+        user_id: user._id,
+      });
+    }
+
     return res.status(200).json({ ...payload, token });
   } catch (error) {
     console.log(error);
