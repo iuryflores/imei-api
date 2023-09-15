@@ -1,10 +1,10 @@
 import { Router } from "express";
 import Clients from "../models/Client.model.js";
+import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
 dotenv.config();
 
 const router = Router();
-
 
 router.get("/", async (req, res, next) => {
   try {
@@ -16,12 +16,53 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.post('/new/', async (req,res,next)=>{
-  try {
-    
-  } catch (error) {
-    
-  }
-})
+router.post("/new/", async (req, res, next) => {
+  console.log(req.body);
 
-export default router
+  const { document, name, email, phone, type } = req.body.customerData;
+  const { userId } = req.body;
+
+  if (document === "" || name === "" || type === "") {
+    return res.status(400).json({ msg: "Nome e CPF/CNPJ são obrigatórios!" });
+  }
+
+  const ClientExists = await Clients.findOne({ document });
+
+  if (ClientExists) {
+    return res.status(400).json({ msg: "Cliente já foi cadastrado(a)!" });
+  }
+  let newAudit;
+  let newCliente;
+  try {
+    newCliente = await Clients.create({
+      full_name: name,
+      email,
+      contact: phone,
+      document,
+      type,
+    });
+    const { _id } = newCliente;
+    console.log(newCliente);
+    if (newCliente) {
+      newAudit = await Audit.create({
+        descricao: "Cadastrou cliente",
+        operacao: "CADASTRO",
+        user_id: userId,
+        cliente_id: newCliente._id,
+      });
+    }
+    return res.status(201).json(newCliente);
+  } catch (error) {
+    console.log(error);
+    if (!newAudit) {
+      await Clients.findByIdAndDelete(newCliente._id);
+      return res.status(400).json({
+        msg: "Não foi possível adicionar o cliente, contate o desenvolvedor do sistema.",
+      });
+    }
+    
+    next();
+  }
+});
+
+export default router;
