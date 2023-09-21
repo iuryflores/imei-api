@@ -13,6 +13,7 @@ import userRoutes from "./routes/user.routes.js";
 import clientesRoutes from "./routes/clients.routes.js";
 import fornecedoresRoutes from "./routes/fornecedores.routes.js";
 import imeiRoutes from "./routes/imei.routes.js";
+import comprasRoutes from "./routes/compras.routes.js";
 //import adminRoutes from "./routes/admin.routes.js";
 //import auditRoutes from "./routes/audit.routes.js";
 
@@ -34,6 +35,7 @@ app.use(authMiddleware);
 app.use("/clientes/", clientesRoutes);
 app.use("/fornecedores/", fornecedoresRoutes);
 app.use("/imei/", imeiRoutes)
+app.use("/compras/", comprasRoutes)
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
