@@ -18,6 +18,7 @@ const AuditSchema = new Schema(
     },
     fornecedor_id: { type: Schema.Types.ObjectId, ref: "Fornecedor" },
     cliente_id: { type: Schema.Types.ObjectId, ref: "Clients" },
+    user_id_changed: { type: Schema.Types.ObjectId, ref: "Users" },
     user_id: {
       type: Schema.Types.ObjectId,
       ref: "Users",

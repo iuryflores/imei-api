@@ -9,7 +9,20 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const data = await Buy.find().populate("fornecedor_id").populate("imei_id");
+    const data = await Audit.find()
+      .populate("fornecedor_id")
+      .populate("imei_id")
+      .populate("sell_id")
+      .populate({
+        path: "buy_id",
+        populate: {
+          path: "fornecedor_id",
+        },
+      })
+      .populate("cliente_id")
+      .populate("user_id_changed")
+      .populate("user_id");
+  
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);

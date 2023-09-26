@@ -62,7 +62,6 @@ router.post("/new/", async (req, res, next) => {
       user_id: userId,
       buy_id: newBuy._id,
     });
-    console.log(registro);
     return res.status(201).json(registro);
   } catch (error) {
     if (!newAudit) {
