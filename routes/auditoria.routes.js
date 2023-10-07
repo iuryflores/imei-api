@@ -21,7 +21,7 @@ router.get("/", async (req, res, next) => {
       })
       .populate("cliente_id")
       .populate("user_id_changed")
-      .populate("user_id");
+      .populate("user_id").sort({createdAt: -1});
   
     return res.status(200).json(data);
   } catch (error) {

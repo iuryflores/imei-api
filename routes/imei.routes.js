@@ -3,6 +3,7 @@ import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
 import Imei from "../models/Imei.model.js";
 import Buy from "../models/Buy.model.js";
+
 dotenv.config();
 
 const router = Router();
@@ -16,21 +17,22 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+let newAudit;
+let newImei;
 router.post("/new/", async (req, res, next) => {
-  const { customerData, selectedItem, imeiArray, userId } = req.body;
-  let newAudit;
+  const { customerData, selectedItem, priceDb, imeiArray, userId } = req.body;
   let newAuditBuy;
   try {
     const newBuy = await Buy.create({
       fornecedor_id: selectedItem._id,
       dateBuy: customerData.dateBuy,
       description: customerData.description,
-      price: customerData.price,
+      price: priceDb,
       brand: customerData.brand,
     });
 
     for (let i = 0; i < imeiArray.length; i++) {
-      let newImei = await Imei.create({
+      newImei = await Imei.create({
         number: imeiArray[i],
         buy_id: newBuy._id,
       });
@@ -64,7 +66,7 @@ router.post("/new/", async (req, res, next) => {
     });
     return res.status(201).json(registro);
   } catch (error) {
-    if (!newAudit) {
+    if (!newAudit && newImei) {
       await Imei.findByIdAndDelete(newImei._id);
       return res.status(400).json({
         msg: "Não foi possível adicionar o Imei, contate o desenvolvedor do sistema.",
@@ -72,6 +74,24 @@ router.post("/new/", async (req, res, next) => {
     }
     console.log(error);
     return res.status(500).json(error);
+  }
+});
+
+router.get("/:imei_number", async (req, res) => {
+  const { imei_number } = req.params;
+
+  try {
+    const imei = await Imei.findOne({ number: imei_number }).populate("buy_id");
+
+    if (!imei) {
+      return res.status(404).json({ msg: "IMEI não encontrado no estoque." });
+    }
+
+    // Retorna os detalhes do IMEI e as compras relacionadas
+    return res.status(200).json(imei);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Erro ao buscar informações do IMEI." });
   }
 });
 
