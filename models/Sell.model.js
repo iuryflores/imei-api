@@ -4,7 +4,7 @@ const sells = new Schema(
   {
     imei_id: [{ type: Schema.Types.ObjectId, ref: "Imeis" }],
     cliente_id: { type: Schema.Types.ObjectId, ref: "Clients" },
-    price: { type: Number },
+    price: { type: Number, require: true },
     status: { type: Boolean, default: true },
     dateSell: { type: Date, default: Date.now },
   },

@@ -91,7 +91,7 @@ router.get("/:imei_number", async (req, res) => {
     return res.status(200).json(imei);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Erro ao buscar informações do IMEI." });
+    next()
   }
 });
 
