@@ -9,8 +9,9 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const data = await Sell.find().populate("client_id").populate("imei_id");
-    console.log(data);
+    const data = await Sell.find()
+      .populate("cliente_id")
+      .populate("imei_id")
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);
@@ -19,10 +20,46 @@ router.get("/", async (req, res, next) => {
 });
 
 router.post("/new/", async (req, res, next) => {
-  const { body } = req;
-  console.log(body);
+  const { selectedCliente, imeiArray, valorVenda, userId } = req.body;
+  let { sellDate } = req.body;
+
+  if (!sellDate) {
+    sellDate = new Date();
+  }
+
   try {
-  } catch (error) {}
+    const newSell = await Sell.create({
+      cliente_id: selectedCliente._id,
+      price: valorVenda,
+      imeiArray,
+      dateSell: sellDate,
+      user_sell: userId,
+    });
+
+    const { _id } = newSell;
+
+    imeiArray.forEach(async (i) => {
+      let imei_id = i._id;
+      let imei_price = i.price;
+      let imei_porcento = i.porcento;
+      await Sell.findByIdAndUpdate(_id, {
+        $push: { imei_id },
+      });
+
+      await Imei.findByIdAndUpdate(imei_id, {
+        $push: {
+          sell_id: _id,
+          sell_price: imei_price,
+          sell_porcento: imei_porcento,
+        },
+      });
+    });
+    return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: error });
+    next();
+  }
 });
 
 export default router;
