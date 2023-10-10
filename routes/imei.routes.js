@@ -10,7 +10,7 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const todos = await Imei.find();
+    const todos = await Imei.find().populate("buy_id");
     return res.status(200).json(todos);
   } catch (error) {
     return res.status(500).json(error);
