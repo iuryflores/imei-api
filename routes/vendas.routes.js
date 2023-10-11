@@ -6,19 +6,19 @@ import Sell from "../models/Sell.model.js";
 dotenv.config();
 
 const router = Router();
-
+//EPGA VENDAS
 router.get("/", async (req, res, next) => {
   try {
-    const data = await Sell.find()
+    const data = await Sell.find({ status: true })
       .populate("cliente_id")
-      .populate("imei_id")
+      .populate("imei_id");
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);
     next();
   }
 });
-
+//CADASTRA VENDA
 router.post("/new/", async (req, res, next) => {
   const { selectedCliente, imeiArray, valorVenda, userId } = req.body;
   let { sellDate } = req.body;
@@ -53,12 +53,40 @@ router.post("/new/", async (req, res, next) => {
           sell_porcento: imei_porcento,
         },
       });
+      await Imei.findByIdAndUpdate(imei_id, {
+        $set: { status: false },
+      });
     });
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: error });
     next();
+  }
+});
+
+//DELETA LOGICAMENTE A VENDA
+router.put("/delete/", async (req, res, next) => {
+  const { venda_id } = req.body;
+
+  try {
+    const deleteVenda = await Sell.findByIdAndUpdate(
+      venda_id,
+      {
+        status: false,
+      },
+      { new: true }
+    );
+    const { imei_id } = deleteVenda;
+    console.log(imei_id);
+    imei_id.forEach(async (element) => {
+      await Imei.findByIdAndUpdate(element, { $set: { status: true } });
+    });
+
+    return res.status(201).json({ msg: "Venda foi deletada!" });
+  } catch (error) {
+    console.log(error);
+    next(error);
   }
 });
 

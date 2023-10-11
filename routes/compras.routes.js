@@ -9,7 +9,7 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const data = await Buy.find()
+    const data = await Buy.find({ status: true })
       .populate("fornecedor_id")
       .populate("imei_id")
       .sort({ createdAt: -1 });
@@ -17,6 +17,32 @@ router.get("/", async (req, res, next) => {
   } catch (error) {
     console.log(error);
     next();
+  }
+});
+
+//DELETA LOGICAMENTE A COMPRA
+router.put("/delete/", async (req, res, next) => {
+  const { compra_id } = req.body;
+
+  try {
+    const deleteCompra = await Buy.findByIdAndUpdate(
+      compra_id,
+      {
+        status: false,
+      },
+      { new: true }
+    );
+    const { imei_id } = deleteCompra;
+
+    console.log(imei_id);
+    imei_id.forEach(async (element) => {
+      await Imei.findByIdAndUpdate(element, { status: false }, { new: true });
+    });
+
+    return res.status(201).json({ msg: "Compra foi deletada!" });
+  } catch (error) {
+    console.log(error);
+    next(error);
   }
 });
 

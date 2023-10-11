@@ -10,7 +10,7 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const todos = await Imei.find().populate("buy_id");
+    const todos = await Imei.find({ status: true }).populate("buy_id");
     return res.status(200).json(todos);
   } catch (error) {
     return res.status(500).json(error);
@@ -30,10 +30,10 @@ router.post("/new/", async (req, res, next) => {
       price: priceDb,
       brand: customerData.brand,
     });
-
+console.log(imeiArray)
     for (let i = 0; i < imeiArray.length; i++) {
       newImei = await Imei.create({
-        number: imeiArray[i],
+        number: imeiArray[i].number,
         buy_id: newBuy._id,
       });
       if (newImei) {
@@ -76,7 +76,7 @@ router.post("/new/", async (req, res, next) => {
     return res.status(500).json(error);
   }
 });
-
+//VENDA
 router.get("/:imei_number", async (req, res) => {
   const { imei_number } = req.params;
 
@@ -91,7 +91,25 @@ router.get("/:imei_number", async (req, res) => {
     return res.status(200).json(imei);
   } catch (error) {
     console.error(error);
-    next()
+    next();
+  }
+});
+//COMPRA
+router.get("/:imei_number/compra", async (req, res,next) => {
+  const { imei_number } = req.params;
+
+  try {
+    const imei = await Imei.findOne({
+      number: imei_number,
+      status: true,
+    });
+    if (imei) {
+      return res.status(404).json({ msg: "IMEI já encontrado no estoque." });
+    }
+    return res.status(200).json({msg:"IMEI liberado para ser inserido!"})
+  } catch (error) {
+    console.error(error);
+    next();
   }
 });
 
