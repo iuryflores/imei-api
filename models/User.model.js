@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, SchemaType, model } from "mongoose";
 
 const users = new Schema(
   {
@@ -12,6 +12,7 @@ const users = new Schema(
     passwordHash: { type: String, required: true },
     status: { type: Boolean, default: false },
     admin: { type: Boolean, default: false },
+    caixa_id: { type: Schema.Types.ObjectId, ref: "Caixas" },
   },
   { timestamps: true }
 );
