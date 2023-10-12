@@ -20,6 +20,84 @@ router.get("/", async (req, res, next) => {
   }
 });
 
+router.post("/new/", async (req, res, next) => {
+  let newAudit;
+  let newImei;
+  let newAuditBuy;
+
+  const { customerData, selectedItem, priceDb, imeiArray, userId } = req.body;
+
+  try {
+    //GET ULTIMA COMPRA NUMBER
+    const last_buy_number = await Buy.find().sort({ buy_number: -1 }).limit(1);
+    const buy_number = last_buy_number[0].buy_number;
+
+
+    const next_buy_number = buy_number + 1;
+
+    //CREATE COMPRA
+    const newBuy = await Buy.create({
+      fornecedor_id: selectedItem._id,
+      dateBuy: customerData.dateBuy,
+      description: customerData.description,
+      price: priceDb,
+      brand: customerData.brand,
+      buy_number: next_buy_number || 1,
+    });
+
+    //CREATE IMEI
+    for (let i = 0; i < imeiArray.length; i++) {
+      newImei = await Imei.create({
+        number: imeiArray[i].number,
+        buy_id: newBuy._id,
+      });
+
+      //INSERT CADA IMEI NA COMPRA
+      if (newImei) {
+        await Buy.findByIdAndUpdate(newBuy._id, {
+          $push: {
+            imei_id: newImei._id,
+          },
+        });
+
+        //CREATE AUDIT DE INSERT DE IMEI NA COMPRA
+        newAudit = await Audit.create({
+          descricao: "Cadastrou Imei",
+          operacao: "CADASTRO",
+          user_id: userId,
+          imei_id: newImei._id,
+        });
+      } else {
+        return res.status(500).json({ msg: "Nao foi possivel cadastrar imei" });
+      }
+    }
+
+    //CREATE AUDIT DA COMPRA
+    newAuditBuy = await Audit.create({
+      descricao: "Cadastrou Compra",
+      operacao: "CADASTRO",
+      user_id: userId,
+      buy_id: newBuy._id,
+    });
+
+    //CREATE PAYLOAD
+    const payload = await Buy.findById(newBuy._id)
+      .populate("fornecedor_id")
+      .populate("imei_id");
+
+    return res.status(201).json(payload);
+  } catch (error) {
+    if (!newAudit && newImei) {
+      await Imei.findByIdAndDelete(newImei._id);
+      return res.status(400).json({
+        msg: "Não foi possível adicionar o Imei, contate o desenvolvedor do sistema.",
+      });
+    }
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
 //DELETA LOGICAMENTE A COMPRA
 router.put("/delete/", async (req, res, next) => {
   const { compra_id } = req.body;

@@ -19,10 +19,17 @@ router.get("/", async (req, res, next) => {
           path: "fornecedor_id",
         },
       })
+      .populate({
+        path: "sell_id",
+        populate: {
+          path: "cliente_id",
+        },
+      })
       .populate("cliente_id")
       .populate("user_id_changed")
-      .populate("user_id").sort({createdAt: -1});
-  
+      .populate("user_id")
+      .sort({ createdAt: -1 });
+
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);

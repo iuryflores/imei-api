@@ -20,6 +20,8 @@ router.get("/", async (req, res, next) => {
 });
 //CADASTRA VENDA
 router.post("/new/", async (req, res, next) => {
+  let newAudit;
+
   const { selectedCliente, imeiArray, valorVenda, userId } = req.body;
   let { sellDate } = req.body;
 
@@ -43,11 +45,11 @@ router.post("/new/", async (req, res, next) => {
       let imei_price = i.price;
       let imei_porcento = i.porcento;
       await Sell.findByIdAndUpdate(_id, {
-        $push: { imei_id },
+        $set: { imei_id },
       });
 
       await Imei.findByIdAndUpdate(imei_id, {
-        $push: {
+        $set: {
           sell_id: _id,
           sell_price: imei_price,
           sell_porcento: imei_porcento,
@@ -57,6 +59,14 @@ router.post("/new/", async (req, res, next) => {
         $set: { status: false },
       });
     });
+
+    newAudit = await Audit.create({
+      descricao: "Cadastrou Venda",
+      operacao: "CADASTRO",
+      user_id: userId,
+      sell_id: newSell._id,
+    });
+
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {
     console.log(error);
@@ -67,7 +77,7 @@ router.post("/new/", async (req, res, next) => {
 
 //DELETA LOGICAMENTE A VENDA
 router.put("/delete/", async (req, res, next) => {
-  const { venda_id } = req.body;
+  const { venda_id, userId } = req.body;
 
   try {
     const deleteVenda = await Sell.findByIdAndUpdate(
@@ -80,10 +90,51 @@ router.put("/delete/", async (req, res, next) => {
     const { imei_id } = deleteVenda;
     console.log(imei_id);
     imei_id.forEach(async (element) => {
-      await Imei.findByIdAndUpdate(element, { $set: { status: true } });
+      await Imei.findByIdAndUpdate(element, {
+        $set: {
+          status: true,
+          sell_id: null,
+          sell_porcento: null,
+          sell_price: null,
+        },
+      });
     });
 
-    return res.status(201).json({ msg: "Venda foi deletada!" });
+    const newAudit = await Audit.create({
+      descricao: "Deletou Venda",
+      operacao: "DELETE",
+      user_id: userId,
+      sell_id: venda_id,
+    });
+    if (newAudit) {
+      return res.status(201).json({ msg: "Venda foi deletada!" });
+    } else {
+      try {
+        // Reverter a atualização da venda
+        await Sell.findByIdAndUpdate(
+          venda_id,
+          {
+            status: true,
+          },
+          { new: true }
+        );
+
+        // Reverter as atualizações de status para imei_id
+        const imeiPromises = imei_id.map(async (element) => {
+          await Imei.findByIdAndUpdate(element, { $set: { status: false } });
+        });
+
+        await Promise.all(imeiPromises);
+
+        return res
+          .status(500)
+          .json({ msg: "Ocorreu um erro. As alterações foram desfeitas." });
+      } catch (error) {
+        return res
+          .status(500)
+          .json({ msg: "Ocorreu um erro ao desfazer as alterações." });
+      }
+    }
   } catch (error) {
     console.log(error);
     next(error);
