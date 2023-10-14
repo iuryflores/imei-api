@@ -106,4 +106,5 @@ router.post("/user/auth/login", async (req, res, next) => {
     next(error);
   }
 });
+
 export default router;

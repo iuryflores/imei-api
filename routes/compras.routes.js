@@ -12,6 +12,7 @@ router.get("/", async (req, res, next) => {
     const data = await Buy.find({ status: true })
       .populate("fornecedor_id")
       .populate("imei_id")
+      .populate("user_buy")
       .sort({ createdAt: -1 });
     return res.status(200).json(data);
   } catch (error) {
@@ -32,7 +33,6 @@ router.post("/new/", async (req, res, next) => {
     const last_buy_number = await Buy.find().sort({ buy_number: -1 }).limit(1);
     const buy_number = last_buy_number[0].buy_number;
 
-
     const next_buy_number = buy_number + 1;
 
     //CREATE COMPRA
@@ -42,6 +42,7 @@ router.post("/new/", async (req, res, next) => {
       description: customerData.description,
       price: priceDb,
       brand: customerData.brand,
+      user_buy: userId,
       buy_number: next_buy_number || 1,
     });
 

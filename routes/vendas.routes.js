@@ -11,7 +11,8 @@ router.get("/", async (req, res, next) => {
   try {
     const data = await Sell.find({ status: true })
       .populate("cliente_id")
-      .populate("imei_id");
+      .populate("imei_id")
+      .populate("user_sell");
     return res.status(200).json(data);
   } catch (error) {
     console.log(error);
@@ -66,6 +67,9 @@ router.post("/new/", async (req, res, next) => {
       user_id: userId,
       sell_id: newSell._id,
     });
+
+    //CADASTRA NO CAIXA A VENDA
+    // const newLancamento = await 
 
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {

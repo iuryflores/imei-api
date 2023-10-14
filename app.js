@@ -15,7 +15,7 @@ import fornecedoresRoutes from "./routes/fornecedores.routes.js";
 import imeiRoutes from "./routes/imei.routes.js";
 import comprasRoutes from "./routes/compras.routes.js";
 import vendasRoutes from "./routes/vendas.routes.js";
-//import adminRoutes from "./routes/admin.routes.js";
+import userPrivateRoutes from "./routes/userPrivate.routes.js";
 import auditRoutes from "./routes/auditoria.routes.js";
 
 import authMiddleware from "./middlewares/auth.middlewares.js";
@@ -29,15 +29,16 @@ app.use(logger("dev"));
 app.use(express.json());
 
 app.use(`/`, userRoutes);
+
 app.use(authMiddleware);
 
-//app.use(`/`, adminRoutes);
+app.use(`/user/`, userPrivateRoutes);
 app.use(`/auditoria/`, auditRoutes);
 app.use("/clientes/", clientesRoutes);
 app.use("/fornecedores/", fornecedoresRoutes);
-app.use("/imei/", imeiRoutes)
-app.use("/compras/", comprasRoutes)
-app.use("/vendas/", vendasRoutes)
+app.use("/imei/", imeiRoutes);
+app.use("/compras/", comprasRoutes);
+app.use("/vendas/", vendasRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
