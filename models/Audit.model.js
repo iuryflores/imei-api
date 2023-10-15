@@ -10,15 +10,8 @@ const AuditSchema = new Schema(
       type: String,
       required: true,
     },
-    buy_id: { type: Schema.Types.ObjectId, ref: "Buys" },
-    sell_id: { type: Schema.Types.ObjectId, ref: "Sells" },
-    imei_id: {
-      type: Schema.Types.ObjectId,
-      ref: "Imeis",
-    },
-    fornecedor_id: { type: Schema.Types.ObjectId, ref: "Fornecedor" },
-    cliente_id: { type: Schema.Types.ObjectId, ref: "Clients" },
-    user_id_changed: { type: Schema.Types.ObjectId, ref: "Users" },
+    entidade: { type: String, require: true },
+    reference_id: { type: Schema.Types.ObjectId },
     user_id: {
       type: Schema.Types.ObjectId,
       ref: "Users",

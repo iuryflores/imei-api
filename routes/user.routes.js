@@ -61,10 +61,10 @@ router.post("/user/auth/signup", async (req, res, next) => {
 router.post("/user/auth/login", async (req, res, next) => {
   const { username, password } = req.body;
 
+  console.log(username, password);
   try {
     //Look for user by email
     const user = await User.findOne({ email: username });
-
     //Check if email was fouded
     if (!user) {
       return res.status(404).json({ msg: "Usuário não encontrado!" });
@@ -96,6 +96,7 @@ router.post("/user/auth/login", async (req, res, next) => {
       await Audit.create({
         descricao: "Fez login",
         operacao: "LOGIN",
+        entidade: "USUÁRIOS",
         user_id: user._id,
       });
     }

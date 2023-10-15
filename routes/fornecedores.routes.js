@@ -55,12 +55,13 @@ router.post("/new/", async (req, res, next) => {
       type,
     });
     const { _id } = newFornecedor;
-    console.log(newFornecedor);
+
     newAudit = await Audit.create({
       descricao: "Cadastrou fornecedor",
       operacao: "CADASTRO",
+      entidade: "FORNECEDORES",
       user_id: userId,
-      fornecedor_id: newFornecedor._id,
+      reference_id: newFornecedor._id,
     });
 
     return res.status(201).json(newFornecedor);

@@ -60,8 +60,9 @@ router.post("/new/", async (req, res, next) => {
       newAudit = await Audit.create({
         descricao: "Cadastrou cliente",
         operacao: "CADASTRO",
+        entidade: "CLIENTES",
         user_id: userId,
-        cliente_id: newCliente._id,
+        reference_id: newCliente._id,
       });
     }
     return res.status(201).json(newCliente);

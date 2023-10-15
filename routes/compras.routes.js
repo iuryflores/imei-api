@@ -78,7 +78,8 @@ router.post("/new/", async (req, res, next) => {
       descricao: "Cadastrou Compra",
       operacao: "CADASTRO",
       user_id: userId,
-      buy_id: newBuy._id,
+      entidade: "COMPRAS",
+      reference_id: newBuy._id,
     });
 
     //CREATE PAYLOAD
@@ -102,7 +103,6 @@ router.post("/new/", async (req, res, next) => {
 //DELETA LOGICAMENTE A COMPRA
 router.put("/delete/", async (req, res, next) => {
   const { compra_id } = req.body;
-
   try {
     const deleteCompra = await Buy.findByIdAndUpdate(
       compra_id,
@@ -113,10 +113,21 @@ router.put("/delete/", async (req, res, next) => {
     );
     const { imei_id } = deleteCompra;
 
-    console.log(imei_id);
     imei_id.forEach(async (element) => {
       await Imei.findByIdAndUpdate(element, { status: false }, { new: true });
     });
+
+    try {
+      await Audit.create({
+        descricao: "Deletou Compra",
+        operacao: "CADASTRO",
+        user_id: userId,
+        entidade: "COMPRAS",
+        reference_id: newBuy._id,
+      });
+    } catch (error) {
+      next(error);
+    }
 
     return res.status(201).json({ msg: "Compra foi deletada!" });
   } catch (error) {

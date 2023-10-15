@@ -10,23 +10,7 @@ const router = Router();
 router.get("/", async (req, res, next) => {
   try {
     const data = await Audit.find()
-      .populate("fornecedor_id")
-      .populate("imei_id")
-      .populate("sell_id")
-      .populate({
-        path: "buy_id",
-        populate: {
-          path: "fornecedor_id",
-        },
-      })
-      .populate({
-        path: "sell_id",
-        populate: {
-          path: "cliente_id",
-        },
-      })
-      .populate("cliente_id")
-      .populate("user_id_changed")
+      .populate("reference_id")
       .populate("user_id")
       .sort({ createdAt: -1 });
 
