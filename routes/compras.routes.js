@@ -63,10 +63,11 @@ router.post("/new/", async (req, res, next) => {
 
         //CREATE AUDIT DE INSERT DE IMEI NA COMPRA
         newAudit = await Audit.create({
-          descricao: "Cadastrou Imei",
+          descricao: `Cadastrou Imei ${newImei.number}`,
           operacao: "CADASTRO",
+          entidade: "IMEI",
           user_id: userId,
-          imei_id: newImei._id,
+          reference_id: newImei._id,
         });
       } else {
         return res.status(500).json({ msg: "Nao foi possivel cadastrar imei" });
@@ -75,7 +76,7 @@ router.post("/new/", async (req, res, next) => {
 
     //CREATE AUDIT DA COMPRA
     newAuditBuy = await Audit.create({
-      descricao: "Cadastrou Compra",
+      descricao: `Cadastrou Compra ${newBuy.buy_number}`,
       operacao: "CADASTRO",
       user_id: userId,
       entidade: "COMPRAS",

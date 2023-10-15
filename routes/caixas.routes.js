@@ -43,7 +43,7 @@ router.post("/new/", async (req, res, next) => {
 
     //CREATE AUDIT
     newAudit = await Audit.create({
-      descricao: "Cadastrou Caixa",
+      descricao: `Cadastrou Caixa ${newCaixa.name}`,
       operacao: "CADASTRO",
       entidade: "CAIXAS",
       user_id: userId,
@@ -85,7 +85,7 @@ router.put("/edit/", async (req, res, next) => {
   const { caixaDataEdit, userId } = req.body;
 
   try {
-    await Caixa.findByIdAndUpdate(
+    const caixa = await Caixa.findByIdAndUpdate(
       { _id: caixaDataEdit.id },
       {
         name: caixaDataEdit.name,
@@ -112,8 +112,8 @@ router.put("/edit/", async (req, res, next) => {
     try {
       //CREATE AUDIT
       const newAudit = await Audit.create({
-        descricao: `Alterou Caixa`,
-        operacao: "ALTERA",
+        descricao: `Alterou Caixa ${caixa.nome}`,
+        operacao: "EDITA",
         entidade: "CAIXAS",
         reference_id: caixa._id,
         user_id: userId,

@@ -58,7 +58,7 @@ router.post("/new/", async (req, res, next) => {
     console.log(newCliente);
     if (newCliente) {
       newAudit = await Audit.create({
-        descricao: "Cadastrou cliente",
+        descricao: `Cadastrou cliente ${newCliente.full_name}`,
         operacao: "CADASTRO",
         entidade: "CLIENTES",
         user_id: userId,

@@ -37,7 +37,7 @@ router.get("/", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}); //ALTERA USER POR ID
+}); //EDITA USER POR ID
 router.put("/edit/", async (req, res, next) => {
   const { userDataEdit, userId } = req.body;
   console.log(userDataEdit);
@@ -91,7 +91,7 @@ router.put("/edit/", async (req, res, next) => {
     //CREATE AUDIT
     const newAudit = await Audit.create({
       descricao: `Alterou Usuário ${userDataEdit.full_name}`,
-      operacao: "ALTERA",
+      operacao: "EDITA",
       entidade: "USUÁRIOS",
       reference_id: userDataEdit.id,
       user_id: userId,

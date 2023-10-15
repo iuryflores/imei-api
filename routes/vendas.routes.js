@@ -62,14 +62,14 @@ router.post("/new/", async (req, res, next) => {
     });
 
     newAudit = await Audit.create({
-      descricao: "Cadastrou Venda",
+      descricao: `Cadastrou Venda ${newSell.number}`,
       operacao: "CADASTRO",
       user_id: userId,
       sell_id: newSell._id,
     });
 
     //CADASTRA NO CAIXA A VENDA
-    // const newLancamento = await 
+    // const newLancamento = await
 
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {
@@ -105,10 +105,11 @@ router.put("/delete/", async (req, res, next) => {
     });
 
     const newAudit = await Audit.create({
-      descricao: "Deletou Venda",
+      descricao: `◊Deletou Venda ${deleteVenda.number}`,
       operacao: "DELETE",
+      entidade: "VENDAS",
       user_id: userId,
-      sell_id: venda_id,
+      reference_id: venda_id,
     });
     if (newAudit) {
       return res.status(201).json({ msg: "Venda foi deletada!" });
