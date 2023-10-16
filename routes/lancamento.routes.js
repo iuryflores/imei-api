@@ -6,6 +6,10 @@ import User from "../models/User.model.js";
 import Lancamentos from "../models/Lancamento.model.js";
 dotenv.config();
 
+import moment from "moment-timezone";
+
+const desiredTimeZone = "America/Sao_Paulo";
+
 const router = Router();
 
 router.get("/", async (req, res, next) => {
@@ -17,19 +21,34 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/meu-caixa/:selectedDate/:userId", async (req, res, next) => {
-  const { selectedDate, caixaId } = req.params;
+router.get("/meu-caixa/:selectedDate/:caixa_id", async (req, res, next) => {
+  const { selectedDate, caixa_id } = req.params;
   console.log(req.params);
   try {
-    // Convert the selectedDate to a JavaScript Date object
-    const parsedDate = new Date(selectedDate);
+    // Obtém a data atual com o fuso horário desejado
+    const currentDateWithTimeZone = moment(selectedDate).tz(desiredTimeZone);
 
-    // Assuming Lancamentos has userId and date fields, we filter by them
+    // Formata a data no formato ISO 8601 personalizado
+    const isoString = currentDateWithTimeZone.format(
+      "YYYY-MM-DDTHH:mm:ss.SSSZ"
+    );
+
+    console.log(isoString);
+
+    const startOfDay = new Date(isoString);
+    startOfDay.setHours(0, 0, 0, 0); // Horas: 00:00:00
+
+    const endOfDay = new Date(isoString);
+    endOfDay.setHours(23, 59, 59, 999); // Horas: 23:59:59.999
+
     const filteredLancamentos = await Lancamentos.find({
-      caixa_id: caixaId,
-      createdAt: parsedDate,
+      caixa_id: caixa_id,
+      createdAt: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
     });
-
+    console.log(filteredLancamentos);
     return res.status(200).json(filteredLancamentos);
   } catch (error) {
     next(error);
