@@ -17,27 +17,24 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-
 //VENDA
-router.get("/:imei_number", async (req, res) => {
+router.get("/:imei_number", async (req, res, next) => {
   const { imei_number } = req.params;
 
   try {
     const imei = await Imei.findOne({ number: imei_number }).populate("buy_id");
-
     if (!imei) {
-      return res.status(404).json({ msg: "IMEI não encontrado no estoque." });
+      return res.status(404).json({ msg: "não encontrado" });
     }
-
-    // Retorna os detalhes do IMEI e as compras relacionadas
     return res.status(200).json(imei);
   } catch (error) {
-    console.error(error);
-    next();
+    console.error(error.message);
+    next(error);
+    return res.status(500).json({ msg: error.message });
   }
 });
 //COMPRA
-router.get("/:imei_number/compra", async (req, res,next) => {
+router.get("/:imei_number/compra", async (req, res, next) => {
   const { imei_number } = req.params;
 
   try {
@@ -48,7 +45,7 @@ router.get("/:imei_number/compra", async (req, res,next) => {
     if (imei) {
       return res.status(404).json({ msg: "IMEI já encontrado no estoque." });
     }
-    return res.status(200).json({msg:"IMEI liberado para ser inserido!"})
+    return res.status(200).json({ msg: "IMEI liberado para ser inserido!" });
   } catch (error) {
     console.error(error);
     next();

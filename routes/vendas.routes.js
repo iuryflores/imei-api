@@ -3,6 +3,7 @@ import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
 import Imei from "../models/Imei.model.js";
 import Sell from "../models/Sell.model.js";
+import Lancamento from "../models/Lancamento.model.js";
 dotenv.config();
 
 const router = Router();
@@ -23,53 +24,96 @@ router.get("/", async (req, res, next) => {
 router.post("/new/", async (req, res, next) => {
   let newAudit;
 
-  const { selectedCliente, imeiArray, valorVenda, userId } = req.body;
-  let { sellDate } = req.body;
+  const {
+    sellDate,
+    selectedCliente,
+    imeiArray,
+    valorVenda,
+    userId,
+    userData,
+    dataPagamento,
+    formaPagamento,
+  } = req.body;
 
   if (!sellDate) {
     sellDate = new Date();
   }
 
   try {
-    const newSell = await Sell.create({
-      cliente_id: selectedCliente._id,
-      price: valorVenda,
-      imeiArray,
-      dateSell: sellDate,
-      user_sell: userId,
-    });
+    //GET ULTIMA COMPRA NUMBER
+    const last_sell_number = await Sell.findOne()
+      .sort({ sell_number: -1 })
+      .limit(1);
 
-    const { _id } = newSell;
+    let next_sell_number;
+    if (last_sell_number !== null) {
+      const sell_number = last_sell_number.sell_number;
 
-    imeiArray.forEach(async (i) => {
-      let imei_id = i._id;
-      let imei_price = i.price;
-      let imei_porcento = i.porcento;
-      await Sell.findByIdAndUpdate(_id, {
-        $set: { imei_id },
+      next_sell_number = sell_number + 1;
+    } else {
+      next_sell_number = 1;
+    }
+    let newSell;
+    try {
+      newSell = await Sell.create({
+        cliente_id: selectedCliente._id,
+        price: valorVenda,
+        imeiArray,
+        dateSell: sellDate,
+        user_sell: userId,
+        sell_number: next_sell_number,
       });
 
-      await Imei.findByIdAndUpdate(imei_id, {
-        $set: {
-          sell_id: _id,
-          sell_price: imei_price,
-          sell_porcento: imei_porcento,
-        },
-      });
-      await Imei.findByIdAndUpdate(imei_id, {
-        $set: { status: false },
-      });
-    });
+      const { _id } = newSell;
 
-    newAudit = await Audit.create({
-      descricao: `Cadastrou Venda ${newSell.number}`,
-      operacao: "CADASTRO",
-      user_id: userId,
-      sell_id: newSell._id,
-    });
+      imeiArray.forEach(async (i) => {
+        let imei_id = i._id;
+        let imei_price = i.price;
+        let imei_porcento = i.porcento;
+        await Sell.findByIdAndUpdate(_id, {
+          $set: { imei_id },
+        });
 
-    //CADASTRA NO CAIXA A VENDA
-    // const newLancamento = await
+        await Imei.findByIdAndUpdate(imei_id, {
+          $set: {
+            sell_id: _id,
+            sell_price: imei_price,
+            sell_porcento: imei_porcento,
+          },
+        });
+        await Imei.findByIdAndUpdate(imei_id, {
+          $set: { status: false },
+        });
+      });
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      newAudit = await Audit.create({
+        descricao: `Cadastrou Venda ${newSell.sell_number}`,
+        operacao: "CADASTRO",
+        user_id: userId,
+        reference_id: newSell._id,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    try {
+      //CADASTRA NO CAIXA A VENDA
+      await Lancamento.create({
+        description: `Registrou venda ${newSell.sell_number}`,
+        valor: valorVenda,
+        forma_pagamento: formaPagamento,
+        data_pagamento: dataPagamento,
+        tipo: "SAÍDA",
+        caixa_id: userData.caixa_id,
+        origem_id: newSell._id,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: error });
+    }
 
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {

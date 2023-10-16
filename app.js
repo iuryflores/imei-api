@@ -18,6 +18,7 @@ import vendasRoutes from "./routes/vendas.routes.js";
 import userPrivateRoutes from "./routes/userPrivate.routes.js";
 import auditRoutes from "./routes/auditoria.routes.js";
 import caixasRoutes from "./routes/caixas.routes.js";
+import lancamentosRoutes from "./routes/lancamento.routes.js";
 
 import authMiddleware from "./middlewares/auth.middlewares.js";
 
@@ -41,6 +42,7 @@ app.use("/imei/", imeiRoutes);
 app.use("/compras/", comprasRoutes);
 app.use("/vendas/", vendasRoutes);
 app.use("/caixas/", caixasRoutes);
+app.use("/lancamentos/", lancamentosRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
