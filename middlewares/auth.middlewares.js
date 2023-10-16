@@ -6,7 +6,9 @@ const auth = (req, res, next) => {
   const token = req.get("Authorization");
 
   if (!token) {
-    return res.status(401).json({ msg: "Token is required" });
+    return res
+      .status(401)
+      .json({ msg: "Sua sessão expirou, é necessário fazer login novamente." });
   }
   const tokenWithoutBearer = token.split(" ")[1];
 
@@ -16,7 +18,7 @@ const auth = (req, res, next) => {
     next();
   } catch (error) {
     console.log(error);
-    return res.status(401).json({ msg: error });
+    res.status(401).json({ msg: error });
     next(error);
   }
 };

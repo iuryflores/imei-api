@@ -101,7 +101,7 @@ router.post("/user/auth/login", async (req, res, next) => {
       });
     }
 
-    return res.status(200).json({ ...payload, token });
+    res.status(200).json({ ...payload, token });
   } catch (error) {
     console.log(error);
     next(error);
