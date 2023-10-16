@@ -22,9 +22,21 @@ router.get("/:imei_number", async (req, res, next) => {
   const { imei_number } = req.params;
 
   try {
-    const imei = await Imei.findOne({ number: imei_number }).populate("buy_id");
+    const imeiVendido = await Imei.findOne({
+      number: imei_number,
+      status: false,
+    });
+    console.log(imeiVendido);
+    if (imeiVendido) {
+      return res.status(403).json({ msg: "Imei já foi vendido!" });
+    }
+
+    const imei = await Imei.findOne({
+      number: imei_number,
+      status: true,
+    }).populate("buy_id");
     if (!imei) {
-      return res.status(404).json({ msg: "não encontrado" });
+      return res.status(404).json({ msg: "IMEI não encontrado!" });
     }
     return res.status(200).json(imei);
   } catch (error) {

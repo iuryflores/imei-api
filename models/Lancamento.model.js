@@ -15,6 +15,10 @@ const lancamentos = new Schema(
     origem_id: { type: Schema.Types.ObjectId },
     conciliado: { type: Boolean, default: false },
     user_conciliado: { type: Schema.Types.ObjectId, ref: "Users" },
+    data_conciliacao: {
+      type: Date,
+      default: () => moment().tz(desiredTimeZone).format(),
+    },
     createdAt: {
       type: Date,
       default: () => moment().tz(desiredTimeZone).format(),
