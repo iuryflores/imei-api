@@ -9,6 +9,8 @@ import express from "express";
 import logger from "morgan";
 import cors from "cors";
 
+import handleError from "./error-handling/index.js";
+
 import userRoutes from "./routes/user.routes.js";
 import clientesRoutes from "./routes/clients.routes.js";
 import fornecedoresRoutes from "./routes/fornecedores.routes.js";
@@ -20,9 +22,9 @@ import auditRoutes from "./routes/auditoria.routes.js";
 
 import authMiddleware from "./middlewares/auth.middlewares.js";
 
-import "./config/db.config.js";
-
 const app = express();
+
+import "./config/db.config.js";
 
 app.use(cors());
 app.use(logger("dev"));
@@ -39,6 +41,8 @@ app.use("/fornecedores/", fornecedoresRoutes);
 app.use("/imei/", imeiRoutes);
 app.use("/compras/", comprasRoutes);
 app.use("/vendas/", vendasRoutes);
+
+handleError(app);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
