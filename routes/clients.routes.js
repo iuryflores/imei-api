@@ -58,10 +58,11 @@ router.post("/new/", async (req, res, next) => {
     console.log(newCliente);
     if (newCliente) {
       newAudit = await Audit.create({
-        descricao: "Cadastrou cliente",
+        descricao: `Cadastrou cliente ${newCliente.full_name}`,
         operacao: "CADASTRO",
+        entidade: "CLIENTES",
         user_id: userId,
-        cliente_id: newCliente._id,
+        reference_id: newCliente._id,
       });
     }
     return res.status(201).json(newCliente);

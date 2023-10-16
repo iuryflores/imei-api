@@ -1,4 +1,7 @@
 import { Schema, model } from "mongoose";
+import moment from "moment-timezone";
+
+const desiredTimeZone = "America/Sao_Paulo"; // Fuso horário desejado
 
 const lancamentos = new Schema(
   {
@@ -10,8 +13,21 @@ const lancamentos = new Schema(
     tipo: { type: String, require: true },
     caixa_id: { type: Schema.Types.ObjectId, ref: "Caixas", require: true },
     origem_id: { type: Schema.Types.ObjectId },
+    conciliado: { type: Boolean, default: false },
+    user_conciliado: { type: Schema.Types.ObjectId, ref: "Users" },
+    createdAt: {
+      type: Date,
+      default: () => moment().tz(desiredTimeZone).format(),
+    },
   },
   { timestamps: true }
 );
+// Middleware para ajustar o fuso horário antes de salvar
+lancamentos.pre("save", function (next) {
+  const currentDate = new Date();
+  this.createdAt = moment(currentDate).tz(desiredTimeZone);
+  this.updatedAt = moment(currentDate).tz(desiredTimeZone);
+  next();
+});
 
 export default model("Lancamentos", lancamentos);

@@ -3,6 +3,7 @@ import { Schema, model } from "mongoose";
 const sells = new Schema(
   {
     imei_id: [{ type: Schema.Types.ObjectId, ref: "Imeis", require: true }],
+    sell_number: { type: Number, required: true },
     cliente_id: { type: Schema.Types.ObjectId, ref: "Clients" },
     price: { type: Number, require: true },
     status: { type: Boolean, default: true },
