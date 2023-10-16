@@ -35,10 +35,6 @@ router.post("/new/", async (req, res, next) => {
     formaPagamento,
   } = req.body;
 
-  if (!sellDate) {
-    sellDate = new Date();
-  }
-
   try {
     //GET ULTIMA COMPRA NUMBER
     const last_sell_number = await Sell.findOne()
@@ -59,7 +55,7 @@ router.post("/new/", async (req, res, next) => {
         cliente_id: selectedCliente._id,
         price: valorVenda,
         imeiArray,
-        dateSell: sellDate,
+        dateSell: sellDate || new Date(),
         user_sell: userId,
         sell_number: next_sell_number,
       });
