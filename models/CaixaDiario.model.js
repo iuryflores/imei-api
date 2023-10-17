@@ -6,14 +6,17 @@ const caixaDiario = new Schema(
       type: Date,
       required: true,
     },
+    userAbertura: { type: Schema.Types.ObjectId, ref: "Users" },
+    userFechamento: { type: Schema.Types.ObjectId, ref: "Users" },
     saldoInicial: {
       type: Number,
       required: true,
     },
-    vendas: {
+    saldoFinal: {
       type: Number,
       required: true,
     },
+    vendas: [{ type: Schema.Types.ObjectId, ref: "Sells" }],
   },
   { timestamps: true }
 );

@@ -23,8 +23,12 @@ router.get("/busca/:term", async (req, res, next) => {
     const filteredFornecedores = await Fornecedor.find({
       full_name: { $regex: new RegExp(term, "i") }, // Pesquisa case-insensitive
     }).sort({ full_name: 1 });
+    if (filteredFornecedores.length === 0) {
+      return res.status(404).json({ msg: "Nenhum fornecedor encontrado" });
+    }
     return res.status(200).json(filteredFornecedores);
   } catch (error) {
+    next(error);
     console.log(error);
   }
 });
