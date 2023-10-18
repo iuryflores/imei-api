@@ -4,10 +4,12 @@ import * as dotenv from "dotenv";
 import Imei from "../models/Imei.model.js";
 import Sell from "../models/Sell.model.js";
 import Lancamento from "../models/Lancamento.model.js";
+import CaixaDia from "../models/CaixaDia.model.js";
+
 dotenv.config();
 
 const router = Router();
-//EPGA VENDAS
+//PEGA VENDAS
 router.get("/", async (req, res, next) => {
   try {
     const data = await Sell.find({ status: true })
@@ -33,6 +35,7 @@ router.post("/new/", async (req, res, next) => {
     userData,
     dataPagamento,
     formaPagamento,
+    idCaixa,
   } = req.body;
 
   try {
@@ -50,6 +53,8 @@ router.post("/new/", async (req, res, next) => {
       next_sell_number = 1;
     }
     let newSell;
+
+    //CRIA A VENDA
     try {
       newSell = await Sell.create({
         cliente_id: selectedCliente._id,
@@ -60,56 +65,74 @@ router.post("/new/", async (req, res, next) => {
         sell_number: next_sell_number,
       });
 
-      const { _id } = newSell;
+      // const { _id } = newSell;
 
-      imeiArray.forEach(async (i) => {
-        let imei_id = i._id;
-        let imei_price = i.price;
-        let imei_porcento = i.porcento;
-        await Sell.findByIdAndUpdate(_id, {
-          $set: { imei_id },
-        });
+      // //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
+      // imeiArray.forEach(async (i) => {
+      //   let imei_id = i._id;
+      //   let imei_price = i.price;
+      //   let imei_porcento = i.porcento;
+      //   await Sell.findByIdAndUpdate(_id, {
+      //     $set: { imei_id },
+      //   });
 
-        await Imei.findByIdAndUpdate(imei_id, {
-          $set: {
-            sell_id: _id,
-            sell_price: imei_price,
-            sell_porcento: imei_porcento,
+      //   //INSERE OS DADOS DA VENDA NO IMEI
+      //   await Imei.findByIdAndUpdate(imei_id, {
+      //     $set: {
+      //       sell_id: _id,
+      //       sell_price: imei_price,
+      //       sell_porcento: imei_porcento,
+      //     },
+      //   });
+
+      //   //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
+      //   await Imei.findByIdAndUpdate(imei_id, {
+      //     $set: { status: false },
+      //   });
+      // });
+
+      console.log(idCaixa);
+
+      const insertCaixa = await CaixaDia.findOneAndUpdate(
+        { _id: idCaixa },
+        {
+          $push: {
+            vendas: newSell._id,
           },
-        });
-        await Imei.findByIdAndUpdate(imei_id, {
-          $set: { status: false },
-        });
-      });
-    } catch (error) {
-      console.log(error);
-    }
-    try {
-      newAudit = await Audit.create({
-        descricao: `Cadastrou Venda ${newSell.sell_number}`,
-        operacao: "CADASTRO",
-        user_id: userId,
-        reference_id: newSell._id,
-      });
-    } catch (error) {
-      console.log(error);
-    }
+        },
+        { new: true }
+      );
 
-    try {
-      //CADASTRA NO CAIXA A VENDA
-      await Lancamento.create({
-        description: `Registrou venda ${newSell.sell_number}`,
-        valor: valorVenda,
-        forma_pagamento: formaPagamento,
-        data_pagamento: dataPagamento,
-        tipo: "SAÍDA",
-        caixa_id: userData.caixa_id,
-        origem_id: newSell._id,
-      });
+      console.log(`InsertCaixa`, insertCaixa);
     } catch (error) {
       console.log(error);
-      return res.status(500).json({ msg: error });
     }
+    // try {
+    //   newAudit = await Audit.create({
+    //     descricao: `Cadastrou Venda ${newSell.sell_number}`,
+    //     operacao: "CADASTRO",
+    //     user_id: userId,
+    //     reference_id: newSell._id,
+    //   });
+    // } catch (error) {
+    //   console.log(error);
+    // }
+
+    // try {
+    //   //CADASTRA NO LANCAMENTOS A VENDA
+    //   await Lancamento.create({
+    //     description: `Registrou venda ${newSell.sell_number}`,
+    //     valor: valorVenda,
+    //     forma_pagamento: formaPagamento,
+    //     data_pagamento: dataPagamento,
+    //     tipo: "SAÍDA",
+    //     caixa_id: userData.caixa_id,
+    //     origem_id: newSell._id,
+    //   });
+    // } catch (error) {
+    //   console.log(error);
+    //   return res.status(500).json({ msg: error });
+    // }
 
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {

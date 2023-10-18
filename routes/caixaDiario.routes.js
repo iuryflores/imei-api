@@ -3,22 +3,45 @@ import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
 import Imei from "../models/Imei.model.js";
 import Buy from "../models/Buy.model.js";
-import CaixaDiario from "../models/CaixaDiario.model.js";
+import CaixaDia from "../models/CaixaDia.model.js";
 dotenv.config();
+
+import moment from "moment-timezone";
+
+const desiredTimeZone = "America/Sao_Paulo";
 
 const router = Router();
 
+//VERIFICA SE TEM CAIXA ABERTO
 router.get("/aberto/:selectedDate", async (req, res, next) => {
   const { selectedDate } = req.params;
   console.log(selectedDate);
+
   try {
-    const findedCaixa = await CaixaDiario.findOne({ data: selectedDate });
-    console.log(findedCaixa);
-    if (!findedCaixa) {
-      return res
-        .status(201)
-        .json({ msg: null });
-    }
+    const findedCaixa = await CaixaDia.findOne({
+      data: selectedDate,
+    });
+    console.log("caixa encontrado:", findedCaixa);
+    return res.status(201).json(findedCaixa);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
+//ABRIR CAIXA
+router.post("/abrir/", async (req, res, next) => {
+  const { userId, selectedDate } = req.body;
+  console.log(req.body);
+
+  try {
+    const abrirCaixa = await CaixaDia.create({
+      data: selectedDate,
+      userAbertura: userId,
+      saldoInicial: 0,
+    });
+
+    return res.status(201).json(abrirCaixa);
   } catch (error) {
     console.log(error);
     return res.status(500).json(error);
