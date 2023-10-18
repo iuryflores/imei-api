@@ -19,7 +19,7 @@ import comprasRoutes from "./routes/compras.routes.js";
 import vendasRoutes from "./routes/vendas.routes.js";
 import userPrivateRoutes from "./routes/userPrivate.routes.js";
 import auditRoutes from "./routes/auditoria.routes.js";
-import caixasRoutes from "./routes/caixas.routes.js";
+// import caixasRoutes from "./routes/caixas.routes.js";
 import lancamentosRoutes from "./routes/lancamento.routes.js";
 import caixaDiarioRoutes from "./routes/caixaDiario.routes.js";
 
@@ -44,9 +44,9 @@ app.use("/fornecedores/", fornecedoresRoutes);
 app.use("/imei/", imeiRoutes);
 app.use("/compras/", comprasRoutes);
 app.use("/vendas/", vendasRoutes);
-app.use("/caixas/", caixasRoutes);
+// app.use("/caixas/", caixasRoutes);
 app.use("/lancamentos/", lancamentosRoutes);
-app.use("/caixaDiario/", caixaDiarioRoutes);
+app.use("/caixa/", caixaDiarioRoutes);
 
 handleError(app);
 

@@ -65,33 +65,31 @@ router.post("/new/", async (req, res, next) => {
         sell_number: next_sell_number,
       });
 
-      // const { _id } = newSell;
+      const { _id } = newSell;
 
-      // //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
-      // imeiArray.forEach(async (i) => {
-      //   let imei_id = i._id;
-      //   let imei_price = i.price;
-      //   let imei_porcento = i.porcento;
-      //   await Sell.findByIdAndUpdate(_id, {
-      //     $set: { imei_id },
-      //   });
+      //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
+      imeiArray.forEach(async (i) => {
+        let imei_id = i._id;
+        let imei_price = i.price;
+        let imei_porcento = i.porcento;
+        await Sell.findByIdAndUpdate(_id, {
+          $set: { imei_id },
+        });
 
-      //   //INSERE OS DADOS DA VENDA NO IMEI
-      //   await Imei.findByIdAndUpdate(imei_id, {
-      //     $set: {
-      //       sell_id: _id,
-      //       sell_price: imei_price,
-      //       sell_porcento: imei_porcento,
-      //     },
-      //   });
+        //INSERE OS DADOS DA VENDA NO IMEI
+        await Imei.findByIdAndUpdate(imei_id, {
+          $set: {
+            sell_id: _id,
+            sell_price: imei_price,
+            sell_porcento: imei_porcento,
+          },
+        });
 
-      //   //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
-      //   await Imei.findByIdAndUpdate(imei_id, {
-      //     $set: { status: false },
-      //   });
-      // });
-
-      console.log(idCaixa);
+        //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
+        await Imei.findByIdAndUpdate(imei_id, {
+          $set: { status: false },
+        });
+      });
 
       const insertCaixa = await CaixaDia.findOneAndUpdate(
         { _id: idCaixa },
@@ -107,32 +105,32 @@ router.post("/new/", async (req, res, next) => {
     } catch (error) {
       console.log(error);
     }
-    // try {
-    //   newAudit = await Audit.create({
-    //     descricao: `Cadastrou Venda ${newSell.sell_number}`,
-    //     operacao: "CADASTRO",
-    //     user_id: userId,
-    //     reference_id: newSell._id,
-    //   });
-    // } catch (error) {
-    //   console.log(error);
-    // }
+    try {
+      newAudit = await Audit.create({
+        descricao: `Cadastrou Venda ${newSell.sell_number}`,
+        operacao: "CADASTRO",
+        user_id: userId,
+        reference_id: newSell._id,
+      });
+    } catch (error) {
+      console.log(error);
+    }
 
-    // try {
-    //   //CADASTRA NO LANCAMENTOS A VENDA
-    //   await Lancamento.create({
-    //     description: `Registrou venda ${newSell.sell_number}`,
-    //     valor: valorVenda,
-    //     forma_pagamento: formaPagamento,
-    //     data_pagamento: dataPagamento,
-    //     tipo: "SAÍDA",
-    //     caixa_id: userData.caixa_id,
-    //     origem_id: newSell._id,
-    //   });
-    // } catch (error) {
-    //   console.log(error);
-    //   return res.status(500).json({ msg: error });
-    // }
+    try {
+      //CADASTRA NO LANCAMENTOS A VENDA
+      await Lancamento.create({
+        description: `Registrou venda ${newSell.sell_number}`,
+        valor: valorVenda,
+        forma_pagamento: formaPagamento,
+        data_pagamento: dataPagamento,
+        tipo: "ENTRADA",
+        caixa_id: userData.caixa_id,
+        origem_id: newSell._id,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: error });
+    }
 
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {

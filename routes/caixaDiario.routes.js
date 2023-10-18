@@ -15,11 +15,17 @@ const router = Router();
 //VERIFICA SE TEM CAIXA ABERTO
 router.get("/aberto/:selectedDate", async (req, res, next) => {
   const { selectedDate } = req.params;
-  console.log(selectedDate);
+  console.log("data: ", selectedDate);
 
   try {
     const findedCaixa = await CaixaDia.findOne({
       data: selectedDate,
+    }).populate({
+      path: "vendas",
+      populate: {
+        path: "user_sell",
+        model: "Users",
+      },
     });
     console.log("caixa encontrado:", findedCaixa);
     return res.status(201).json(findedCaixa);

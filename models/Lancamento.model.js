@@ -5,19 +5,18 @@ const desiredTimeZone = "America/Sao_Paulo"; // Fuso horário desejado
 
 const lancamentos = new Schema(
   {
-    description: { type: String, require: true },
-    valor: { type: Number, require: true },
-    forma_pagamento: { type: String, require: true },
-    data_pagamento: { type: Date, default: Date.now },
-    data_vencimento: { type: Date, defaul: Date.now },
-    tipo: { type: String, require: true },
-    caixa_id: { type: Schema.Types.ObjectId, ref: "Caixas", require: true },
-    origem_id: { type: Schema.Types.ObjectId },
+    description: { type: String, required: true },
+    valor: { type: Number, required: true },
+    forma_pagamento: { type: String, required: true },
+    data_pagamento: { type: Date },
+    data_vencimento: { type: Date },
+    tipo: { type: String, required: true },
+    caixa_id: { type: Schema.Types.ObjectId, ref: "CaixaDia", required: true },
+    origem_id: { type: Schema.Types.ObjectId, ref: "Sells", required: true },
     conciliado: { type: Boolean, default: false },
     user_conciliado: { type: Schema.Types.ObjectId, ref: "Users" },
     data_conciliacao: {
       type: Date,
-      default: () => moment().tz(desiredTimeZone).format(),
     },
     createdAt: {
       type: Date,
@@ -26,12 +25,5 @@ const lancamentos = new Schema(
   },
   { timestamps: true }
 );
-// Middleware para ajustar o fuso horário antes de salvar
-lancamentos.pre("save", function (next) {
-  const currentDate = new Date();
-  this.createdAt = moment(currentDate).tz(desiredTimeZone);
-  this.updatedAt = moment(currentDate).tz(desiredTimeZone);
-  next();
-});
 
 export default model("Lancamentos", lancamentos);
