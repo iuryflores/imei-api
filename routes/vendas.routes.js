@@ -124,7 +124,7 @@ router.post("/new/", async (req, res, next) => {
         forma_pagamento: formaPagamento,
         data_pagamento: dataPagamento,
         tipo: "ENTRADA",
-        caixa_id: userData.caixa_id,
+        caixa_id: idCaixa,
         origem_id: newSell._id,
       });
     } catch (error) {

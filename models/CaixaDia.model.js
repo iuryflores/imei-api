@@ -1,4 +1,7 @@
 import { Schema, model } from "mongoose";
+import moment from "moment-timezone";
+
+const desiredTimeZone = "America/Sao_Paulo";
 
 const CaixaDia = new Schema(
   {
@@ -16,6 +19,10 @@ const CaixaDia = new Schema(
       type: Number,
     },
     vendas: [{ type: Schema.Types.ObjectId, ref: "Sells" }],
+    createdAt: {
+      type: Date,
+      default: () => moment().tz(desiredTimeZone).format(),
+    },
   },
   { timestamps: true }
 );
