@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const sells = new Schema(
+const Sells = new Schema(
   {
     imei_id: [{ type: Schema.Types.ObjectId, ref: "Imeis", required: true }],
     sell_number: { type: Number, required: true },
@@ -13,4 +13,4 @@ const sells = new Schema(
   { timestamps: true }
 );
 
-export default model("Sells", sells);
+export default model("Sells", Sells);

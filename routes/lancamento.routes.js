@@ -21,8 +21,8 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/meu-caixa/:selectedDate/:caixa_id", async (req, res, next) => {
-  const { selectedDate, caixa_id } = req.params;
+router.get("/meu-caixa/:selectedDate/", async (req, res, next) => {
+  const { selectedDate } = req.params;
   try {
     // Obtém a data atual com o fuso horário desejado
     const currentDateWithTimeZone = moment(selectedDate).tz(desiredTimeZone);
@@ -39,7 +39,6 @@ router.get("/meu-caixa/:selectedDate/:caixa_id", async (req, res, next) => {
     endOfDay.setHours(23, 59, 59, 999); // Horas: 23:59:59.999
 
     const filteredLancamentos = await Lancamentos.find({
-      caixa_id: caixa_id,
       createdAt: {
         $gte: startOfDay,
         $lte: endOfDay,
