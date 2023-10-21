@@ -14,6 +14,7 @@ const buys = new Schema(
         message: "{VALUE} não é um número finito (double)",
       },
     },
+    priceTotal: { type: Number, required: true },
     fornecedor_id: { type: Schema.Types.ObjectId, ref: "Fornecedor" },
     status: { type: Boolean, default: true },
     dateBuy: { type: Date, default: Date.now },

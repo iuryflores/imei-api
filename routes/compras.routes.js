@@ -26,7 +26,8 @@ router.post("/new/", async (req, res, next) => {
   let newImei;
   let newAuditBuy;
 
-  const { customerData, selectedItem, priceDb, imeiArray, userId } = req.body;
+  const { customerData, selectedItem, priceDb, valorFormatado, imeiArray, userId } =
+    req.body;
 
   try {
     //GET ULTIMA COMPRA NUMBER
@@ -45,6 +46,7 @@ router.post("/new/", async (req, res, next) => {
       dateBuy: customerData.dateBuy,
       description: customerData.description,
       price: priceDb,
+      priceTotal: valorFormatado,
       brand: customerData.brand,
       user_buy: userId,
       buy_number: next_buy_number || 1,
