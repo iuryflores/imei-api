@@ -12,10 +12,22 @@ const desiredTimeZone = "America/Sao_Paulo";
 
 const router = Router();
 
+//VERIFICA OS CAIXAS ABERTOS
+router.get("/todos-abertos/", async (req, res, next) => {
+  try {
+    const findedCaixa = await CaixaDia.find({
+      status: true,
+    }).populate("userAbertura").populate("vendas");
+    return res.status(201).json(findedCaixa);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
 //VERIFICA SE TEM CAIXA ABERTO
 router.get("/aberto/:selectedDate", async (req, res, next) => {
   const { selectedDate } = req.params;
-  console.log("data: ", selectedDate);
 
   try {
     const findedCaixa = await CaixaDia.findOne({
