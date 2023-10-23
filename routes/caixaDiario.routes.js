@@ -12,12 +12,28 @@ const desiredTimeZone = "America/Sao_Paulo";
 
 const router = Router();
 
+//GET VENDAS DO CAIXA POR ID
+router.get("/vendas/:caixa_id/", async (req, res, next) => {
+  const { caixa_id } = req.params;
+  try {
+    const findedCaixa = await CaixaDia.findById(caixa_id)
+      .populate("userAbertura")
+      .populate("vendas");
+    return res.status(201).json(findedCaixa);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
 //VERIFICA OS CAIXAS ABERTOS
 router.get("/todos-abertos/", async (req, res, next) => {
   try {
     const findedCaixa = await CaixaDia.find({
       status: true,
-    }).populate("userAbertura").populate("vendas");
+    })
+      .populate("userAbertura")
+      .populate("vendas");
     return res.status(201).json(findedCaixa);
   } catch (error) {
     console.log(error);

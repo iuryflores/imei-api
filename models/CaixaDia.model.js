@@ -18,7 +18,7 @@ const CaixaDia = new Schema(
     saldoFinal: {
       type: Number,
     },
-    status: { type: Boolean, default: false },
+    status: { type: Boolean, default: true },
     vendas: [{ type: Schema.Types.ObjectId, ref: "Sells" }],
     createdAt: {
       type: Date,
