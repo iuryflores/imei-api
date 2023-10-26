@@ -15,10 +15,12 @@ const router = Router();
 //GET VENDAS DO CAIXA POR ID
 router.get("/vendas/:caixa_id/", async (req, res, next) => {
   const { caixa_id } = req.params;
+  console.log(caixa_id);
   try {
     const findedCaixa = await CaixaDia.findById(caixa_id)
       .populate("userAbertura")
       .populate("vendas");
+    console.log(findedCaixa);
     return res.status(201).json(findedCaixa);
   } catch (error) {
     console.log(error);

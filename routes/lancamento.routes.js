@@ -43,7 +43,22 @@ router.get("/meu-caixa/:selectedDate/", async (req, res, next) => {
         $gte: startOfDay,
         $lte: endOfDay,
       },
-    });
+    })
+      .populate({
+        path: "origem_id",
+        populate: {
+          path: "cliente_id",
+          model: "Clients",
+        },
+      })
+      .populate({
+        path: "origem_id",
+        populate: {
+          path: "user_sell",
+          model: "Users",
+        },
+      })
+      .sort({ createdAt: -1 });
     return res.status(200).json(filteredLancamentos);
   } catch (error) {
     next(error);
