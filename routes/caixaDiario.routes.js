@@ -1,9 +1,8 @@
 import { Router } from "express";
 import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
-import Imei from "../models/Imei.model.js";
-import Buy from "../models/Buy.model.js";
 import CaixaDia from "../models/CaixaDia.model.js";
+
 dotenv.config();
 
 import moment from "moment-timezone";
@@ -19,9 +18,29 @@ router.get("/vendas/:caixa_id/", async (req, res, next) => {
   try {
     const findedCaixa = await CaixaDia.findById(caixa_id)
       .populate("userAbertura")
-      .populate("vendas");
-    console.log(findedCaixa);
+      .populate({
+        path: "vendas",
+        populate: {
+          path: "user_sell",
+          model: "Users",
+        },
+      });
+
     return res.status(201).json(findedCaixa);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
+//GET TODOS OS CAIXAS
+router.get("/todos/", async (req, res, next) => {
+  try {
+    const todosCaixas = await CaixaDia.find()
+      .populate("userAbertura")
+      .populate("vendas")
+      .sort({ createdAt: -1 });
+    return res.status(201).json(todosCaixas);
   } catch (error) {
     console.log(error);
     return res.status(500).json(error);
@@ -50,6 +69,7 @@ router.get("/aberto/:selectedDate", async (req, res, next) => {
   try {
     const findedCaixa = await CaixaDia.findOne({
       data: selectedDate,
+      status: true,
     }).populate({
       path: "vendas",
       populate: {
@@ -57,7 +77,6 @@ router.get("/aberto/:selectedDate", async (req, res, next) => {
         model: "Users",
       },
     });
-    console.log("caixa encontrado:", findedCaixa);
     return res.status(201).json(findedCaixa);
   } catch (error) {
     console.log(error);
@@ -78,6 +97,34 @@ router.post("/abrir/", async (req, res, next) => {
     });
 
     return res.status(201).json(abrirCaixa);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
+//FECHAR CAIXA
+router.put("/fechar/", async (req, res, next) => {
+  console.log(req.body);
+  const { caixaId, saldoCaixaDb, userId } = req.body;
+
+  const obterDataFormatada = () => moment().tz(desiredTimeZone).format();
+  const dataFormatada = obterDataFormatada();
+
+  try {
+    const findedCaixa = await CaixaDia.findByIdAndUpdate(
+      caixaId,
+      {
+        status: false,
+        saldoFinal: saldoCaixaDb,
+        closedAt: dataFormatada,
+        userFechamento: userId,
+      },
+      { new: true }
+    );
+    console.log(findedCaixa);
+
+    return res.status(201).json(findedCaixa);
   } catch (error) {
     console.log(error);
     return res.status(500).json(error);

@@ -9,6 +9,7 @@ const Sells = new Schema(
     status: { type: Boolean, default: true },
     dateSell: { type: Date, default: Date.now },
     user_sell: { type: Schema.Types.ObjectId, ref: "Users" },
+    conciliada: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

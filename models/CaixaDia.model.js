@@ -24,6 +24,10 @@ const CaixaDia = new Schema(
       type: Date,
       default: () => moment().tz(desiredTimeZone).format(),
     },
+    closedAt: {
+      type: Date,
+      default: () => moment().tz(desiredTimeZone).format(),
+    },
   },
   { timestamps: true }
 );

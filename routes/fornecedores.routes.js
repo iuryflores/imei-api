@@ -28,7 +28,7 @@ router.get("/busca/:term", async (req, res, next) => {
     }
     return res.status(200).json(filteredFornecedores);
   } catch (error) {
-    next(error);
+    next();
     console.log(error);
   }
 });
