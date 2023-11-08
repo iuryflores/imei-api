@@ -4,8 +4,11 @@ const buys = new Schema(
   {
     imei_id: [{ type: Schema.Types.ObjectId, ref: "Imeis" }],
     buy_number: { type: Number, required: true },
-    description: { type: String, required: true },
-    brand: { type: String, required: true },
+    produto_id: {
+      type: Schema.Types.ObjectId,
+      ref: "Produtos",
+      required: true,
+    },
     price: {
       type: Number,
       required: true,
@@ -14,6 +17,7 @@ const buys = new Schema(
         message: "{VALUE} não é um número finito (double)",
       },
     },
+    sellPrice: { type: Number, required: true },
     priceTotal: { type: Number, required: true },
     fornecedor_id: { type: Schema.Types.ObjectId, ref: "Fornecedor" },
     status: { type: Boolean, default: true },

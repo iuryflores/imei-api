@@ -9,6 +9,7 @@ const imeis = new Schema(
     sell_id: { type: Schema.Types.ObjectId, ref: "Sells" },
     sell_price: { type: Number },
     sell_porcento: { type: Number },
+    serial: { type: String },
   },
   { timestamps: true }
 );
