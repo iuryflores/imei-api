@@ -21,18 +21,36 @@ router.get("/", async (req, res, next) => {
 router.post("/new/", async (req, res, next) => {
   console.log(req.body);
   const { body } = req;
-  const { description, brand } = body.formData;
-  console.log(description, brand);
+  const { description, brand, qtd } = body.formData;
 
   try {
     const newProduto = await Produto.create({
       description,
       brand,
+      qtd,
     });
     return res.status(201).json(newProduto);
   } catch (error) {
     console.log(error);
     return res.status(500).json(error);
+  }
+});
+
+//BUSCA PRODUTO
+router.get("/busca/:term", async (req, res, next) => {
+  const { term } = req.params;
+
+  try {
+    const filteredProdutos = await Produto.find({
+      description: { $regex: new RegExp(term, "i") }, // Pesquisa case-insensitive
+    }).sort({ description: 1 });
+    if (filteredProdutos.length === 0) {
+      return res.status(404).json({ msg: "Nenhum produto encontrado" });
+    }
+    return res.status(200).json(filteredProdutos);
+  } catch (error) {
+    next();
+    console.log(error);
   }
 });
 

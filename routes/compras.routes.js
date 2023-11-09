@@ -3,6 +3,7 @@ import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
 import Imei from "../models/Imei.model.js";
 import Buy from "../models/Buy.model.js";
+import Produtos from "../models/Produtos.model.js";
 dotenv.config();
 
 const router = Router();
@@ -26,8 +27,16 @@ router.post("/new/", async (req, res, next) => {
   let newImei;
   let newAuditBuy;
 
-  const { customerData, selectedItem, priceDb, valorFormatado, imeiArray, userId } =
-    req.body;
+  const {
+    customerData,
+    selectedItem,
+    priceDb,
+    priceVendaDb,
+    selectedProduto,
+    valorFormatado,
+    imeiArray,
+    userId,
+  } = req.body;
 
   try {
     //GET ULTIMA COMPRA NUMBER
@@ -42,12 +51,12 @@ router.post("/new/", async (req, res, next) => {
     }
     //CREATE COMPRA
     const newBuy = await Buy.create({
-      fornecedor_id: selectedItem._id,
       dateBuy: customerData.dateBuy,
-      description: customerData.description,
+      fornecedor_id: selectedItem._id,
       price: priceDb,
       priceTotal: valorFormatado,
-      brand: customerData.brand,
+      sellPrice: priceVendaDb,
+      produto_id: selectedProduto._id,
       user_buy: userId,
       buy_number: next_buy_number || 1,
     });
@@ -56,9 +65,18 @@ router.post("/new/", async (req, res, next) => {
     for (let i = 0; i < imeiArray.length; i++) {
       newImei = await Imei.create({
         number: imeiArray[i].number,
+        serial: imeiArray[i].serial,
         buy_id: newBuy._id,
       });
 
+      //ADD TO PRODUTOS QTD
+      const produtoAdicionado = await Produtos.findByIdAndUpdate(
+        { _id: selectedProduto._id },
+        { $set: { qtd: selectedProduto.qtd + imeiArray.length } }
+      );
+      if (!produtoAdicionado) {
+        return res.status(500).json(error);
+      }
       //INSERT CADA IMEI NA COMPRA
       if (newImei) {
         await Buy.findByIdAndUpdate(newBuy._id, {

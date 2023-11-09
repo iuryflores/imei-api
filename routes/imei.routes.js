@@ -10,7 +10,13 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const todos = await Imei.find({ status: true }).populate("buy_id");
+    const todos = await Imei.find({ status: true }).populate({
+      path: "buy_id",
+      populate: {
+        path: "produto_id",
+        model: "Produtos",
+      },
+    });
     return res.status(200).json(todos);
   } catch (error) {
     return res.status(500).json(error);
