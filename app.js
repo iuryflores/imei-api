@@ -22,6 +22,7 @@ import auditRoutes from "./routes/auditoria.routes.js";
 import caixasRoutes from "./routes/caixas.routes.js";
 import lancamentosRoutes from "./routes/lancamento.routes.js";
 import caixaDiarioRoutes from "./routes/caixaDiario.routes.js";
+import produtosRoutes from "./routes/produtos.routes.js";
 
 import authMiddleware from "./middlewares/auth.middlewares.js";
 
@@ -47,6 +48,7 @@ app.use("/vendas/", vendasRoutes);
 app.use("/caixas/", caixasRoutes);
 app.use("/lancamentos/", lancamentosRoutes);
 app.use("/caixa/", caixaDiarioRoutes);
+app.use("/produtos/", produtosRoutes);
 
 handleError(app);
 
