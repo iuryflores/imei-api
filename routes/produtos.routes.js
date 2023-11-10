@@ -23,11 +23,16 @@ router.post("/new/", async (req, res, next) => {
   const { body } = req;
   const { description, brand, qtd } = body.formData;
 
+  const { valorCompraDb, valorVendaDb, hasImei } = req.body;
+
   try {
     const newProduto = await Produto.create({
       description,
       brand,
       qtd,
+      hasImei,
+      valorCompraDb,
+      valorVendaDb,
     });
     return res.status(201).json(newProduto);
   } catch (error) {
