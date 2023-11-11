@@ -40,7 +40,13 @@ router.get("/:imei_number", async (req, res, next) => {
     const imei = await Imei.findOne({
       number: imei_number,
       status: true,
-    }).populate("buy_id");
+    }).populate({
+      path: "buy_id",
+      populate: {
+        path: "produto_id",
+        model: "Produtos",
+      },
+    });
     if (!imei) {
       return res.status(404).json({ msg: "IMEI não encontrado!" });
     }
