@@ -38,6 +38,8 @@ router.post("/new/", async (req, res, next) => {
     idCaixa,
   } = req.body;
 
+  console.log(req.body)
+/*
   try {
     //GET ULTIMA COMPRA NUMBER
     const last_sell_number = await Sell.findOne()
@@ -137,7 +139,7 @@ router.post("/new/", async (req, res, next) => {
     console.log(error);
     res.status(500).json({ msg: error });
     next();
-  }
+  }*/
 });
 
 //DELETA LOGICAMENTE A VENDA
