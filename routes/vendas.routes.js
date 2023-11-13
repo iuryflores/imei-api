@@ -5,6 +5,7 @@ import Imei from "../models/Imei.model.js";
 import Sell from "../models/Sell.model.js";
 import Lancamento from "../models/Lancamento.model.js";
 import CaixaDia from "../models/CaixaDia.model.js";
+import Produto from "../models/Produtos.model.js";
 
 dotenv.config();
 
@@ -30,7 +31,8 @@ router.post("/new/", async (req, res, next) => {
     sellDate,
     selectedCliente,
     imeiArray,
-    valorVenda,
+    selectedProducts,
+    valorTotal,
     userId,
     userData,
     dataPagamento,
@@ -38,8 +40,6 @@ router.post("/new/", async (req, res, next) => {
     idCaixa,
   } = req.body;
 
-  console.log(req.body)
-/*
   try {
     //GET ULTIMA COMPRA NUMBER
     const last_sell_number = await Sell.findOne()
@@ -60,8 +60,9 @@ router.post("/new/", async (req, res, next) => {
     try {
       newSell = await Sell.create({
         cliente_id: selectedCliente._id,
-        price: valorVenda,
+        price: valorTotal,
         imeiArray,
+
         dateSell: sellDate || new Date(),
         user_sell: userId,
         sell_number: next_sell_number,
@@ -73,7 +74,6 @@ router.post("/new/", async (req, res, next) => {
       imeiArray.forEach(async (i) => {
         let imei_id = i._id;
         let imei_price = i.price;
-        let imei_porcento = i.porcento;
         await Sell.findByIdAndUpdate(_id, {
           $set: { imei_id },
         });
@@ -83,7 +83,6 @@ router.post("/new/", async (req, res, next) => {
           $set: {
             sell_id: _id,
             sell_price: imei_price,
-            sell_porcento: imei_porcento,
           },
         });
 
@@ -92,7 +91,29 @@ router.post("/new/", async (req, res, next) => {
           $set: { status: false },
         });
       });
-
+      //INDISPONIBILIZA O PRODUTO
+      selectedProducts.forEach(async (i) => {
+        let produto_id = i._id;
+        let produto_qtd = parseInt(i.quantity);
+        console.log(produto_qtd);
+        const selectProd = await Produto.findById(produto_id);
+        console.log(selectProd);
+        await Produto.findByIdAndUpdate(selectProd._id, {
+          $set: {
+            qtd: selectProd.qtd - produto_qtd,
+          },
+        });
+        await Sell.findByIdAndUpdate(newSell._id, {
+          $set: {
+            outrosProdutos: [
+              {
+                product_id: produto_id,
+                qtd: produto_qtd,
+              },
+            ],
+          },
+        });
+      });
       const insertCaixa = await CaixaDia.findOneAndUpdate(
         { _id: idCaixa },
         {
@@ -122,7 +143,7 @@ router.post("/new/", async (req, res, next) => {
       //CADASTRA NO LANCAMENTOS A VENDA
       await Lancamento.create({
         description: `Registrou venda ${newSell.sell_number}`,
-        valor: valorVenda,
+        valor: valorTotal,
         forma_pagamento: formaPagamento,
         data_pagamento: dataPagamento,
         tipo: "ENTRADA",
@@ -139,7 +160,7 @@ router.post("/new/", async (req, res, next) => {
     console.log(error);
     res.status(500).json({ msg: error });
     next();
-  }*/
+  }
 });
 
 //DELETA LOGICAMENTE A VENDA
