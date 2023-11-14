@@ -12,5 +12,7 @@ const produtos = new Schema(
   },
   { timestamps: true }
 );
+// Adiciona o índice único para o campo 'description'
+produtos.index({ description: 1 }, { unique: true, dropDups: true });
 
 export default model("Produtos", produtos);
