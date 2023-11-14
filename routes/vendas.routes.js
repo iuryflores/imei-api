@@ -131,6 +131,7 @@ router.post("/new/", async (req, res, next) => {
     try {
       newAudit = await Audit.create({
         descricao: `Cadastrou Venda ${newSell.sell_number}`,
+        entidade: "VENDAS",
         operacao: "CADASTRO",
         user_id: userId,
         reference_id: newSell._id,
