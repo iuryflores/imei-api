@@ -29,24 +29,26 @@ router.post("/new/", async (req, res, next) => {
 
   const {
     sellDate,
-    selectedCliente,
+    cliente_ID,
     imeiArray,
     selectedProducts,
     valorTotal,
-    userId,
     userData,
     dataPagamento,
     formaPagamento,
     idCaixa,
   } = req.body;
 
+  console.log(req.body);
+  let newSell;
+  let next_sell_number;
+
   try {
-    //GET ULTIMA COMPRA NUMBER
+    //GET LAST BUY NUMBER
     const last_sell_number = await Sell.findOne()
       .sort({ sell_number: -1 })
       .limit(1);
 
-    let next_sell_number;
     if (last_sell_number !== null) {
       const sell_number = last_sell_number.sell_number;
 
@@ -54,114 +56,127 @@ router.post("/new/", async (req, res, next) => {
     } else {
       next_sell_number = 1;
     }
-    let newSell;
-
-    //CRIA A VENDA
-    try {
-      newSell = await Sell.create({
-        cliente_id: selectedCliente._id,
-        price: valorTotal,
-        imeiArray,
-
-        dateSell: sellDate || new Date(),
-        user_sell: userId,
-        sell_number: next_sell_number,
-      });
-
-      const { _id } = newSell;
-
-      //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
-      imeiArray.forEach(async (i) => {
-        let imei_id = i._id;
-        let imei_price = i.price;
-        await Sell.findByIdAndUpdate(_id, {
-          $set: { imei_id },
-        });
-
-        //INSERE OS DADOS DA VENDA NO IMEI
-        await Imei.findByIdAndUpdate(imei_id, {
-          $set: {
-            sell_id: _id,
-            sell_price: imei_price,
-          },
-        });
-
-        //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
-        await Imei.findByIdAndUpdate(imei_id, {
-          $set: { status: false },
-        });
-      });
-      //INDISPONIBILIZA O PRODUTO
-      selectedProducts.forEach(async (i) => {
-        let produto_id = i._id;
-        let produto_qtd = parseInt(i.quantity);
-        console.log(produto_qtd);
-        const selectProd = await Produto.findById(produto_id);
-        console.log(selectProd);
-        await Produto.findByIdAndUpdate(selectProd._id, {
-          $set: {
-            qtd: selectProd.qtd - produto_qtd,
-          },
-        });
-        await Sell.findByIdAndUpdate(newSell._id, {
-          $set: {
-            outrosProdutos: [
-              {
-                product_id: produto_id,
-                qtd: produto_qtd,
-              },
-            ],
-          },
-        });
-      });
-      const insertCaixa = await CaixaDia.findOneAndUpdate(
-        { _id: idCaixa },
-        {
-          $push: {
-            vendas: newSell._id,
-          },
-        },
-        { new: true }
-      );
-
-      console.log(`InsertCaixa`, insertCaixa);
-    } catch (error) {
-      console.log(error);
-    }
-    try {
-      newAudit = await Audit.create({
-        descricao: `Cadastrou Venda ${newSell.sell_number}`,
-        entidade: "VENDAS",
-        operacao: "CADASTRO",
-        user_id: userId,
-        reference_id: newSell._id,
-      });
-    } catch (error) {
-      console.log(error);
-    }
-
-    try {
-      //CADASTRA NO LANCAMENTOS A VENDA
-      await Lancamento.create({
-        description: `Registrou venda ${newSell.sell_number}`,
-        valor: valorTotal,
-        forma_pagamento: formaPagamento,
-        data_pagamento: dataPagamento,
-        tipo: "ENTRADA",
-        caixa_id: idCaixa,
-        origem_id: newSell._id,
-      });
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ msg: error });
-    }
-
-    return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: error });
     next();
   }
+  //CRIA A VENDA
+  try {
+    newSell = await Sell.create({
+      cliente_id: cliente_ID,
+      price: valorTotal,
+      imeiArray,
+      dateSell: sellDate || new Date(),
+      user_sell: userData.id,
+      sell_number: next_sell_number,
+    });
+
+    const { _id } = newSell;
+
+    const bulkOperations = [];
+
+    //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
+    for (const i of imeiArray) {
+      let imei_id = i._id;
+      let imei_price = i.sellingPrice;
+      bulkOperations.push({
+        updateOne: {
+          filter: { _id },
+          update: { $push: { imei_id } },
+        },
+      });
+
+      //INSERE OS DADOS DA VENDA NO IMEI
+      bulkOperations.push({
+        updateOne: {
+          filter: { _id: imei_id },
+          update: {
+            $push: {
+              sell_id: _id,
+              sell_price: imei_price,
+            },
+          },
+        },
+      });
+      //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
+      bulkOperations.push({
+        updateOne: {
+          filter: { _id: imei_id },
+          update: {
+            $push: { status: false },
+          },
+        },
+      });
+    }
+
+    //INDISPONIBILIZA O PRODUTO
+    for (const i of selectedProducts) {
+      let produto_id = i._id;
+      let produto_qtd = parseInt(i.quantity);
+
+      const selectProd = await Produto.findById(produto_id);
+      await Produto.findByIdAndUpdate(selectProd._id, {
+        $set: {
+          qtd: selectProd.qtd - produto_qtd,
+        },
+      });
+      await Sell.findByIdAndUpdate(newSell._id, {
+        $push: {
+          outrosProdutos: [
+            {
+              product_id: produto_id,
+              qtd: produto_qtd,
+            },
+          ],
+        },
+      });
+    }
+
+    await CaixaDia.findOneAndUpdate(
+      { _id: idCaixa },
+      {
+        $push: {
+          vendas: newSell._id,
+        },
+      },
+      { new: true }
+    );
+    // Executa todas as operações em lote
+    const bulk = await Sell.bulkWrite(bulkOperations);
+  } catch (error) {
+    console.log(error);
+  }
+  //CRIA AUDITORIA
+  try {
+    newAudit = await Audit.create({
+      descricao: `Cadastrou Venda ${newSell.sell_number}`,
+      entidade: "VENDAS",
+      operacao: "CADASTRO",
+      user_id: userData.id,
+      reference_id: newSell._id,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  //CADASTRA NO LANCAMENTOS DO CAIXA
+  try {
+    await Lancamento.create({
+      description: `Registrou venda ${newSell.sell_number}`,
+      valor: valorTotal,
+      forma_pagamento: formaPagamento,
+      data_pagamento: dataPagamento,
+      tipo: "ENTRADA",
+      caixa_id: idCaixa,
+      origem_id: newSell._id,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: error });
+  }
+
+  return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
 });
 
 //DELETA LOGICAMENTE A VENDA

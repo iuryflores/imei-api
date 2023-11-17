@@ -7,7 +7,7 @@ const OutrosProdutosSchema = new Schema({
 
 const Sells = new Schema(
   {
-    imei_id: [{ type: Schema.Types.ObjectId, ref: "Imeis", required: true }],
+    imei_id: [{ type: Schema.Types.ObjectId, ref: "Imeis" }],
     outrosProdutos: [OutrosProdutosSchema],
     sell_number: { type: Number, required: true },
     cliente_id: { type: Schema.Types.ObjectId, ref: "Clients" },
