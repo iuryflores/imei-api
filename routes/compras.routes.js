@@ -38,6 +38,8 @@ router.post("/new/", async (req, res, next) => {
     userId,
   } = req.body;
 
+  console.log(req.body);
+
   try {
     //GET ULTIMA COMPRA NUMBER
     const last_buy_number = await Buy.find().sort({ buy_number: -1 }).limit(1);
@@ -65,6 +67,7 @@ router.post("/new/", async (req, res, next) => {
     for (let i = 0; i < imeiArray.length; i++) {
       newImei = await Imei.create({
         number: imeiArray[i].number,
+        produto_id: selectedProduto._id,
         serial: imeiArray[i].serial,
         buy_id: newBuy._id,
       });
