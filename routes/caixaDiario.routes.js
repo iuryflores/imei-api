@@ -20,10 +20,28 @@ router.get("/vendas/:caixa_id/", async (req, res, next) => {
       .populate("userAbertura")
       .populate({
         path: "vendas",
-        populate: {
-          path: "user_sell",
-          model: "Users",
-        },
+        populate: [
+          {
+            path: "cliente_id",
+            model: "Clients",
+          },
+          {
+            path: "user_sell",
+            model: "Users",
+          },
+          {
+            path: "imei_id",
+            model: "Imeis",
+            populate: {
+              path: "buy_id",
+              model: "Buys",
+              populate: {
+                path: "produto_id",
+                model: "Produtos",
+              },
+            },
+          },
+        ],
       });
 
     return res.status(201).json(findedCaixa);

@@ -20,15 +20,11 @@ const CaixaDia = new Schema(
     },
     status: { type: Boolean, default: true },
     vendas: [{ type: Schema.Types.ObjectId, ref: "Sells" }],
-    createdAt: {
-      type: Date,
-      default: () => moment().tz(desiredTimeZone).format(),
-    },
-    closedAt: {
-      type: Date,
-      default: () => moment().tz(desiredTimeZone).format(),
-    },
   },
-  { timestamps: true }
+  {
+    timestamps: {
+      currentTime: () => moment().tz(desiredTimeZone).toDate(),
+    },
+  }
 );
 export default model("CaixaDia", CaixaDia);
