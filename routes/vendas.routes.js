@@ -7,6 +7,8 @@ import Lancamento from "../models/Lancamento.model.js";
 import CaixaDia from "../models/CaixaDia.model.js";
 import Produto from "../models/Produtos.model.js";
 
+import mongoose from "mongoose";
+
 dotenv.config();
 
 const router = Router();
@@ -39,144 +41,163 @@ router.post("/new/", async (req, res, next) => {
     idCaixa,
   } = req.body;
 
-  console.log(req.body);
+  // console.log(req.body);
   let newSell;
   let next_sell_number;
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    //GET LAST BUY NUMBER
-    const last_sell_number = await Sell.findOne()
-      .sort({ sell_number: -1 })
-      .limit(1);
+    try {
+      //GET LAST BUY NUMBER
+      const last_sell_number = await Sell.findOne()
+        .sort({ sell_number: -1 })
+        .limit(1);
 
-    if (last_sell_number !== null) {
-      const sell_number = last_sell_number.sell_number;
+      if (last_sell_number !== null) {
+        const sell_number = last_sell_number.sell_number;
 
-      next_sell_number = sell_number + 1;
-    } else {
-      next_sell_number = 1;
+        next_sell_number = sell_number + 1;
+      } else {
+        next_sell_number = 1;
+      }
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ msg: error });
+      next();
     }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ msg: error });
-    next();
-  }
-  //CRIA A VENDA
-  try {
-    newSell = await Sell.create({
-      cliente_id: cliente_ID,
-      price: valorTotal,
-      imeiArray,
-      dateSell: sellDate || new Date(),
-      user_sell: userData.id,
-      sell_number: next_sell_number,
-    });
-
-    const { _id } = newSell;
-
-    const bulkOperations = [];
-
-    //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
-    for (const i of imeiArray) {
-      let imei_id = i._id;
-      let imei_price = i.sellingPrice;
-      bulkOperations.push({
-        updateOne: {
-          filter: { _id },
-          update: { $push: { imei_id } },
-        },
+    //CRIA A VENDA
+    try {
+      newSell = await Sell.create({
+        cliente_id: cliente_ID,
+        price: valorTotal,
+        imeiArray,
+        dateSell: sellDate || new Date(),
+        user_sell: userData.id,
+        sell_number: next_sell_number,
       });
+    } catch (error) {
+      console.log(error);
+    }
+    const { sell_id } = newSell._id;
+    try {
+      //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
+      for (const i of imeiArray) {
+        let imei_id = i._id;
+        let imei_price = i.sellingPrice;
+        let product_id = i.produto_id;
+        await Sell.findByIdAndUpdate(sell_id, {
+          $push: { imei_id },
+        });
 
-      //INSERE OS DADOS DA VENDA NO IMEI
-      bulkOperations.push({
-        updateOne: {
-          filter: { _id: imei_id },
-          update: {
-            $push: {
-              sell_id: _id,
-              sell_price: imei_price,
+        //INSERE OS DADOS DA VENDA NO IMEI
+        await Imei.findByIdAndUpdate(imei_id, {
+          $push: {
+            sell_id: sell_id,
+            sell_price: imei_price,
+          },
+        });
+
+        //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
+        await Imei.findByIdAndUpdate(imei_id, {
+          $set: { status: false },
+        });
+
+        console.log("produto_id: ", product_id);
+        const selectProdImei = await Produto.findById(product_id);
+        console.log("selectedProd: ", selectProdImei);
+        const atualizaProduto = await Produto.findByIdAndUpdate(
+          selectProdImei._id,
+          {
+            $set: {
+              qtd: selectProdImei.qtd - 1,
             },
+          }
+        );
+        console.log(atualizaProduto);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      //INDISPONIBILIZA O PRODUTO
+      for (const i of selectedProducts) {
+        let produto_id = i._id;
+        let produto_qtd = parseInt(i.quantity);
+
+        const selectProd = await Produto.findById(produto_id);
+        await Produto.findByIdAndUpdate(selectProd._id, {
+          $set: {
+            qtd: selectProd.qtd - produto_qtd,
+          },
+        });
+        await Sell.findByIdAndUpdate(newSell._id, {
+          $push: {
+            outrosProdutos: [
+              {
+                product_id: produto_id,
+                qtd: produto_qtd,
+              },
+            ],
+          },
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    try {
+      await CaixaDia.findOneAndUpdate(
+        { _id: idCaixa },
+        {
+          $push: {
+            vendas: newSell._id,
           },
         },
-      });
-      //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
-      bulkOperations.push({
-        updateOne: {
-          filter: { _id: imei_id },
-          update: {
-            $push: { status: false },
-          },
-        },
-      });
+        { new: true }
+      );
+    } catch (error) {
+      console.log(error);
     }
 
-    //INDISPONIBILIZA O PRODUTO
-    for (const i of selectedProducts) {
-      let produto_id = i._id;
-      let produto_qtd = parseInt(i.quantity);
-
-      const selectProd = await Produto.findById(produto_id);
-      await Produto.findByIdAndUpdate(selectProd._id, {
-        $set: {
-          qtd: selectProd.qtd - produto_qtd,
-        },
+    //CRIA AUDITORIA
+    try {
+      newAudit = await Audit.create({
+        descricao: `Cadastrou Venda ${newSell.sell_number}`,
+        entidade: "VENDAS",
+        operacao: "CADASTRO",
+        user_id: userData.id,
+        reference_id: newSell._id,
       });
-      await Sell.findByIdAndUpdate(newSell._id, {
-        $push: {
-          outrosProdutos: [
-            {
-              product_id: produto_id,
-              qtd: produto_qtd,
-            },
-          ],
-        },
-      });
+    } catch (error) {
+      console.log(error);
     }
 
-    await CaixaDia.findOneAndUpdate(
-      { _id: idCaixa },
-      {
-        $push: {
-          vendas: newSell._id,
-        },
-      },
-      { new: true }
-    );
-    // Executa todas as operações em lote
-    const bulk = await Sell.bulkWrite(bulkOperations);
-  } catch (error) {
-    console.log(error);
-  }
-  //CRIA AUDITORIA
-  try {
-    newAudit = await Audit.create({
-      descricao: `Cadastrou Venda ${newSell.sell_number}`,
-      entidade: "VENDAS",
-      operacao: "CADASTRO",
-      user_id: userData.id,
-      reference_id: newSell._id,
-    });
-  } catch (error) {
-    console.log(error);
-  }
+    //CADASTRA NO LANCAMENTOS DO CAIXA
+    try {
+      await Lancamento.create({
+        description: `Registrou venda ${newSell.sell_number}`,
+        valor: valorTotal,
+        forma_pagamento: formaPagamento,
+        data_pagamento: dataPagamento,
+        tipo: "ENTRADA",
+        caixa_id: idCaixa,
+        origem_id: newSell._id,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ msg: error });
+    }
 
-  //CADASTRA NO LANCAMENTOS DO CAIXA
-  try {
-    await Lancamento.create({
-      description: `Registrou venda ${newSell.sell_number}`,
-      valor: valorTotal,
-      forma_pagamento: formaPagamento,
-      data_pagamento: dataPagamento,
-      tipo: "ENTRADA",
-      caixa_id: idCaixa,
-      origem_id: newSell._id,
-    });
+    await session.commitTransaction();
+    session.endSession();
+    return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ msg: error });
-  }
+    await session.abortTransaction();
+    session.endSession();
 
-  return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
+    console.log(error);
+    return res.status(500).json({ msg: "Erro ao cadastrar a venda" });
+  }
 });
 
 //DELETA LOGICAMENTE A VENDA

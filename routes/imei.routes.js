@@ -32,7 +32,7 @@ router.get("/:imei_number", async (req, res, next) => {
       number: imei_number,
       status: false,
     });
-    console.log(imeiVendido);
+
     if (imeiVendido) {
       return res.status(403).json({ msg: "Imei já foi vendido!" });
     }
