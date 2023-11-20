@@ -7,8 +7,6 @@ import Lancamento from "../models/Lancamento.model.js";
 import CaixaDia from "../models/CaixaDia.model.js";
 import Produto from "../models/Produtos.model.js";
 
-import mongoose from "mongoose";
-
 dotenv.config();
 
 const router = Router();
@@ -27,8 +25,6 @@ router.get("/", async (req, res, next) => {
 });
 //CADASTRA VENDA
 router.post("/new/", async (req, res, next) => {
-  let newAudit;
-
   const {
     sellDate,
     cliente_ID,
@@ -41,12 +37,8 @@ router.post("/new/", async (req, res, next) => {
     idCaixa,
   } = req.body;
 
-  // console.log(req.body);
   let newSell;
   let next_sell_number;
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
   try {
     try {
       //GET LAST BUY NUMBER
@@ -63,8 +55,7 @@ router.post("/new/", async (req, res, next) => {
       }
     } catch (error) {
       console.log(error);
-      res.status(500).json({ msg: error });
-      next();
+      return res.status(500).json({ msg: error });
     }
     //CRIA A VENDA
     try {
@@ -78,43 +69,37 @@ router.post("/new/", async (req, res, next) => {
       });
     } catch (error) {
       console.log(error);
+      return res.status(500).json({ msg: error });
     }
-    const { sell_id } = newSell._id;
+
     try {
       //INSERE IMEIS NA ARRAY DE IMEIS DA VENDA
       for (const i of imeiArray) {
         let imei_id = i._id;
         let imei_price = i.sellingPrice;
         let product_id = i.produto_id;
-        await Sell.findByIdAndUpdate(sell_id, {
+        const newImei = await Sell.findByIdAndUpdate(newSell._id, {
           $push: { imei_id },
         });
-
         //INSERE OS DADOS DA VENDA NO IMEI
         await Imei.findByIdAndUpdate(imei_id, {
           $push: {
-            sell_id: sell_id,
+            sell_id: newSell._id,
             sell_price: imei_price,
           },
         });
 
         //INDISPONIBILIZA O IMEI PARA OUTRA COMPRA
         await Imei.findByIdAndUpdate(imei_id, {
-          $set: { status: false },
+          $set: { status: "VENDIDO" },
         });
 
-        console.log("produto_id: ", product_id);
         const selectProdImei = await Produto.findById(product_id);
-        console.log("selectedProd: ", selectProdImei);
-        const atualizaProduto = await Produto.findByIdAndUpdate(
-          selectProdImei._id,
-          {
-            $set: {
-              qtd: selectProdImei.qtd - 1,
-            },
-          }
-        );
-        console.log(atualizaProduto);
+        await Produto.findByIdAndUpdate(selectProdImei._id, {
+          $set: {
+            qtd: selectProdImei.qtd - 1,
+          },
+        });
       }
     } catch (error) {
       console.log(error);
@@ -161,7 +146,7 @@ router.post("/new/", async (req, res, next) => {
 
     //CRIA AUDITORIA
     try {
-      newAudit = await Audit.create({
+      const newAudit = await Audit.create({
         descricao: `Cadastrou Venda ${newSell.sell_number}`,
         entidade: "VENDAS",
         operacao: "CADASTRO",
@@ -188,16 +173,52 @@ router.post("/new/", async (req, res, next) => {
       return res.status(500).json({ msg: error });
     }
 
-    await session.commitTransaction();
-    session.endSession();
     return res.status(201).json({ msg: "Venda cadastrada com sucesso" });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
     console.log(error);
     return res.status(500).json({ msg: "Erro ao cadastrar a venda" });
   }
+});
+
+//DEVOLVE VENDA
+router.put("/devolver", async (req, res, next) => {
+  const { vendaID, userData } = req.body;
+
+  console.log(req.body);
+
+  //SELL CHANGES
+  try {
+    await Sell.findByIdAndUpdate(vendaID, {
+      $set: {
+        status: "DEVOLVIDO",
+        dateSell: null,
+        user_sell: null,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  //LANCAMENTO CHANGES
+  try {
+    await Lancamento.findByIdAndUpdate();
+  } catch (error) {
+    console.log(error);
+  }
+
+  //IMEI CHANGES
+  try {
+  } catch (error) {
+    console.log(error);
+  }
+
+  //CAIXADIA CHANGES
+  try {
+  } catch (error) {
+    console.log(error);
+  }
+
+  //AUDITORIA
 });
 
 //DELETA LOGICAMENTE A VENDA
