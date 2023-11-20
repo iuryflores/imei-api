@@ -184,41 +184,141 @@ router.post("/new/", async (req, res, next) => {
 router.put("/devolver", async (req, res, next) => {
   const { vendaID, userData } = req.body;
 
-  console.log(req.body);
+  const findLancamento = await Lancamento.findById(vendaID);
 
-  //SELL CHANGES
+  const findVenda = await Sell.findById(findLancamento.origem_id);
+
+  const findCaixa = await CaixaDia.findById(findLancamento.caixa_id);
+
+  //ADICIONA QTD DOS IMEI
   try {
-    await Sell.findByIdAndUpdate(vendaID, {
-      $set: {
-        status: "DEVOLVIDO",
-        dateSell: null,
-        user_sell: null,
+    for (const imeiObject of findVenda.imei_id) {
+      const findIMEIData = await Imei.findById(imeiObject);
+
+      const findProduto = await Produto.findById(findIMEIData.produto_id);
+
+      const updateProduto = await Produto.findByIdAndUpdate(
+        findIMEIData.produto_id,
+        {
+          qtd: findProduto.qtd + 1,
+        },
+        { new: true }
+      );
+      console.log(updateProduto);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  //ADICIONA QTD DOS OUTROSPRODUTOS
+  try {
+    for (const outrosProdObject of findVenda.outrosProdutos) {
+      // console.log(imeiObject);
+
+      const findProduto = await Produto.findById(outrosProdObject.product_id);
+      console.log(findProduto);
+
+      console.log(findProduto.qtd);
+
+      console.log(outrosProdObject.qtd);
+
+      const updateProduto = await Produto.findByIdAndUpdate(
+        findProduto._id,
+        {
+          qtd: findProduto.qtd + outrosProdObject.qtd,
+        },
+        { new: true }
+      );
+      console.log(updateProduto);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  let [venda, lancamento, caixaDia] = "";
+
+  // //SELL CHANGES
+  try {
+    venda = await Sell.findByIdAndUpdate(
+      findVenda._id,
+      {
+        $set: {
+          status: "DEVOLVIDO",
+        },
       },
-    });
+      {
+        new: true,
+      }
+    );
   } catch (error) {
     console.log(error);
   }
 
   //LANCAMENTO CHANGES
   try {
-    await Lancamento.findByIdAndUpdate();
+    lancamento = await Lancamento.findByIdAndUpdate(
+      findLancamento._id,
+      {
+        $set: {
+          status: "DEVOLVIDO",
+        },
+      },
+      {
+        new: true,
+      }
+    );
   } catch (error) {
     console.log(error);
   }
-
   //IMEI CHANGES
   try {
+    for (const imeiObjectId of venda.imei_id) {
+      Imei.findByIdAndUpdate(
+        imeiObjectId,
+        { status: "DISPONIVEL" },
+        { new: true }
+      )
+        .then((updatedImei) => {
+          // Aqui você pode realizar a ação desejada para cada IMEI
+          console.log("IMEI encontrado:", updatedImei);
+          // Realize sua ação aqui, como atualizar, deletar, etc.
+        })
+        .catch((error) => {
+          console.error("Erro ao buscar IMEI:", error);
+        });
+    }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
-
   //CAIXADIA CHANGES
   try {
+    caixaDia = await CaixaDia.findByIdAndUpdate(
+      findCaixa._id,
+      {
+        $pull: {
+          vendas: findVenda._id,
+        },
+      },
+      { new: true }
+    )
+      .then((updatedCaixaDia) => {
+        console.log("CaixaDia atualizado:", updatedCaixaDia);
+        // Realize suas ações aqui, se necessário
+      })
+      .catch((error) => {
+        console.error("Erro ao atualizar CaixaDia:", error);
+      });
   } catch (error) {
     console.log(error);
   }
 
   //AUDITORIA
+  await Audit.create({
+    descricao: `Venda ${findVenda.sell_number} devolvida`,
+    entidade: "VENDAS",
+    operacao: "DEVOLUÇÃO",
+    user_id: userData.id,
+    reference_id: findVenda._id,
+  });
 });
 
 //DELETA LOGICAMENTE A VENDA
@@ -247,7 +347,7 @@ router.put("/delete/", async (req, res, next) => {
     });
 
     const newAudit = await Audit.create({
-      descricao: `◊Deletou Venda ${deleteVenda.number}`,
+      descricao: `Deletou Venda ${deleteVenda.number}`,
       operacao: "DELETE",
       entidade: "VENDAS",
       user_id: userId,
