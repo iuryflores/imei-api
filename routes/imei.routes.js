@@ -1,8 +1,8 @@
 import { Router } from "express";
 import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
-import Imei from "../models/Imei.model.js";
 import Buy from "../models/Buy.model.js";
+import Imei from "../models/Imei.model.js";
 
 dotenv.config();
 
@@ -10,7 +10,7 @@ const router = Router();
 
 router.get("/", async (req, res, next) => {
   try {
-    const todos = await Imei.find({ status: true }).populate({
+    const todos = await Imei.find({ status: "DISPONIVEL" }).populate({
       path: "buy_id",
       populate: {
         path: "produto_id",
@@ -30,7 +30,7 @@ router.get("/:imei_number", async (req, res, next) => {
   try {
     const imeiVendido = await Imei.findOne({
       number: imei_number,
-      status: false,
+      status: { $ne: "DISPONIVEL" },
     });
 
     if (imeiVendido) {
@@ -39,7 +39,7 @@ router.get("/:imei_number", async (req, res, next) => {
 
     const imei = await Imei.findOne({
       number: imei_number,
-      status: true,
+      status: "DISPONIVEL",
     }).populate({
       path: "buy_id",
       populate: {
@@ -64,7 +64,7 @@ router.get("/:imei_number/compra", async (req, res, next) => {
   try {
     const imei = await Imei.findOne({
       number: imei_number,
-      status: true,
+      status: "DISPONIVEL",
     });
     if (imei) {
       return res.status(404).json({ msg: "IMEI já encontrado no estoque." });

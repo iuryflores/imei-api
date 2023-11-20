@@ -21,28 +21,56 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.get("/meu-caixa/:selectedDate/", async (req, res, next) => {
-  const { selectedDate } = req.params;
+// router.get("/meu-caixa/:selectedDate/", async (req, res, next) => {
+//   const { selectedDate } = req.params;
+//   try {
+//     // Obtém a data atual com o fuso horário desejado
+//     const currentDateWithTimeZone = moment(selectedDate).tz(desiredTimeZone);
+
+//     // Formata a data no formato ISO 8601 personalizado
+//     const isoString = currentDateWithTimeZone.format(
+//       "YYYY-MM-DDTHH:mm:ss.SSSZ"
+//     );
+
+//     const startOfDay = new Date(isoString);
+//     startOfDay.setHours(0, 0, 0, 0); // Horas: 00:00:00
+
+//     const endOfDay = new Date(isoString);
+//     endOfDay.setHours(23, 59, 59, 999); // Horas: 23:59:59.999
+
+//     const filteredLancamentos = await Lancamentos.find({
+//       createdAt: {
+//         $gte: startOfDay,
+//         $lte: endOfDay,
+//       },
+//     })
+//       .populate({
+//         path: "origem_id",
+//         populate: {
+//           path: "cliente_id",
+//           model: "Clients",
+//         },
+//       })
+//       .populate({
+//         path: "origem_id",
+//         populate: {
+//           path: "user_sell",
+//           model: "Users",
+//         },
+//       })
+//       .sort({ createdAt: -1 });
+//     return res.status(200).json(filteredLancamentos);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
+
+router.get("/meu-caixa/:caixa_id/", async (req, res, next) => {
+  const { caixa_id } = req.params;
+  console.log(caixa_id);
   try {
-    // Obtém a data atual com o fuso horário desejado
-    const currentDateWithTimeZone = moment(selectedDate).tz(desiredTimeZone);
-
-    // Formata a data no formato ISO 8601 personalizado
-    const isoString = currentDateWithTimeZone.format(
-      "YYYY-MM-DDTHH:mm:ss.SSSZ"
-    );
-
-    const startOfDay = new Date(isoString);
-    startOfDay.setHours(0, 0, 0, 0); // Horas: 00:00:00
-
-    const endOfDay = new Date(isoString);
-    endOfDay.setHours(23, 59, 59, 999); // Horas: 23:59:59.999
-
     const filteredLancamentos = await Lancamentos.find({
-      createdAt: {
-        $gte: startOfDay,
-        $lte: endOfDay,
-      },
+      caixa_id: caixa_id,
     })
       .populate({
         path: "origem_id",
