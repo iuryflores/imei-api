@@ -37,9 +37,7 @@ router.post("/new/", async (req, res, next) => {
     imeiArray,
     userId,
   } = req.body;
-
   console.log(req.body);
-
   try {
     //GET ULTIMA COMPRA NUMBER
     const last_buy_number = await Buy.find().sort({ buy_number: -1 }).limit(1);
@@ -86,15 +84,6 @@ router.post("/new/", async (req, res, next) => {
           $push: {
             imei_id: newImei._id,
           },
-        });
-
-        //CREATE AUDIT DE INSERT DE IMEI NA COMPRA
-        newAudit = await Audit.create({
-          descricao: `Cadastrou Imei ${newImei.number}`,
-          operacao: "CADASTRO",
-          entidade: "IMEI",
-          user_id: userId,
-          reference_id: newImei._id,
         });
       } else {
         return res.status(500).json({ msg: "Nao foi possivel cadastrar imei" });
