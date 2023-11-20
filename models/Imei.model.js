@@ -3,7 +3,7 @@ import { Schema, model } from "mongoose";
 const imeis = new Schema(
   {
     number: { type: Number, required: true },
-    status: { type: Boolean, default: true },
+    status: { type: String, required: true, default: "DISPONIVEL" },
     buy_id: { type: Schema.Types.ObjectId, ref: "Buys" },
     buy_price: { type: Number },
     produto_id: { type: Schema.Types.ObjectId, ref: "Produtos" },

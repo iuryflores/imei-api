@@ -12,10 +12,9 @@ const Sells = new Schema(
     sell_number: { type: Number, required: true },
     cliente_id: { type: Schema.Types.ObjectId, ref: "Clients" },
     price: { type: Number, required: true },
-    status: { type: Boolean, default: true },
+    status: { type: String, required: true, default: "ATIVA" },
     dateSell: { type: Date, default: Date.now },
     user_sell: { type: Schema.Types.ObjectId, ref: "Users" },
-    conciliada: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
