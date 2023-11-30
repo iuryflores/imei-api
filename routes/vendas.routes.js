@@ -319,6 +319,7 @@ router.put("/devolver", async (req, res, next) => {
     user_id: userData.id,
     reference_id: findVenda._id,
   });
+  return res.status(201).json({ msg: "Devolução realizada com sucesso!" });
 });
 
 //DELETA LOGICAMENTE A VENDA

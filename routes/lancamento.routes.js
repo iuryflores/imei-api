@@ -65,9 +65,9 @@ router.get("/", async (req, res, next) => {
 //   }
 // });
 
-router.get("/meu-caixa/:caixa_id/", async (req, res, next) => {
+router.get("/meu-caixa-id/:caixa_id/", async (req, res, next) => {
   const { caixa_id } = req.params;
-  console.log(caixa_id);
+  console.log("caixa-id",caixa_id);
   try {
     const filteredLancamentos = await Lancamentos.find({
       caixa_id: caixa_id,

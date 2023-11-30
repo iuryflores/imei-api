@@ -9,7 +9,7 @@ const router = Router();
 
 router.get("/:userId", async (req, res, next) => {
   const { userId } = req.params;
-
+console.log(userId)
   try {
     const user = await User.findById(userId);
 
@@ -24,9 +24,10 @@ router.get("/:userId", async (req, res, next) => {
       cpf: user.cpf,
       caixa_id: user.caixa_id,
     };
-
+console.log("entrei")
     res.status(200).json(payload);
   } catch (error) {
+    console.log(error);
     next(error);
   }
 });
@@ -37,7 +38,8 @@ router.get("/", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-}); //EDITA USER POR ID
+});
+//EDITA USER POR ID
 router.put("/edit/", async (req, res, next) => {
   const { userDataEdit, userId } = req.body;
   console.log(userDataEdit);
