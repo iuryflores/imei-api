@@ -14,6 +14,7 @@ router.get("/", async (req, res, next) => {
       .populate("fornecedor_id")
       .populate("imei_id")
       .populate("user_buy")
+      .populate("produto_id")
       .sort({ createdAt: -1 });
     return res.status(200).json(data);
   } catch (error) {
