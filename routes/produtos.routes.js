@@ -59,4 +59,29 @@ router.get("/busca/:term", async (req, res, next) => {
   }
 });
 
+router.delete("/delete/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(id);
+  try {
+    const deletedProduto = await Produto.findByIdAndRemove(id);
+    return res.status(201).json({ msg: "Produto deletado com sucesso!" });
+  } catch (error) {
+    return res.status(500).json({ msg: "Não foi possível deletar o produto." });
+  }
+});
+
+router.put("/edit/:id", async (req, res) => {
+  const { id } = req.params;
+  const { description } = req.body;
+  console.log(id, description);
+  try {
+    const editProduto = await Produto.findByIdAndUpdate(id, {
+      description: description,
+    });
+    return res.status(201).json({ msg: "Produto alterado com sucesso!" });
+  } catch (error) {
+    return res.status(500).json({ msg: "Não foi possível alterar o produto." });
+  }
+});
+
 export default router;
