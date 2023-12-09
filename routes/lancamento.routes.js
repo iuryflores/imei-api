@@ -67,7 +67,7 @@ router.get("/", async (req, res, next) => {
 
 router.get("/meu-caixa-id/:caixa_id/", async (req, res, next) => {
   const { caixa_id } = req.params;
-  console.log("caixa-id", caixa_id);
+  console.log("caixa-id",caixa_id);
   try {
     const filteredLancamentos = await Lancamentos.find({
       caixa_id: caixa_id,
@@ -89,7 +89,7 @@ router.get("/meu-caixa-id/:caixa_id/", async (req, res, next) => {
       .sort({ createdAt: -1 });
     return res.status(200).json(filteredLancamentos);
   } catch (error) {
-    return res.status(404).json({ msg: "Nenhum caixa aberto no dia de hoje!" });
+    next(error);
   }
 });
 export default router;
