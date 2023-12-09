@@ -68,28 +68,30 @@ router.get("/", async (req, res, next) => {
 router.get("/meu-caixa-id/:caixa_id/", async (req, res, next) => {
   const { caixa_id } = req.params;
   console.log("caixa-id", caixa_id);
-  try {
-    const filteredLancamentos = await Lancamentos.find({
-      caixa_id: caixa_id,
-    })
-      .populate({
-        path: "origem_id",
-        populate: {
-          path: "cliente_id",
-          model: "Clients",
-        },
+  if (caixa_id) {
+    try {
+      const filteredLancamentos = await Lancamentos.find({
+        caixa_id: caixa_id,
       })
-      .populate({
-        path: "origem_id",
-        populate: {
-          path: "user_sell",
-          model: "Users",
-        },
-      })
-      .sort({ createdAt: -1 });
-    return res.status(200).json(filteredLancamentos);
-  } catch (error) {
-    return res.status(404).json({ msg: "Nenhum caixa aberto hoje;" });
+        .populate({
+          path: "origem_id",
+          populate: {
+            path: "cliente_id",
+            model: "Clients",
+          },
+        })
+        .populate({
+          path: "origem_id",
+          populate: {
+            path: "user_sell",
+            model: "Users",
+          },
+        })
+        .sort({ createdAt: -1 });
+      return res.status(200).json(filteredLancamentos);
+    } catch (error) {
+      return res.status(404).json({ msg: "Nenhum caixa aberto hoje;" });
+    }
   }
 });
 export default router;
