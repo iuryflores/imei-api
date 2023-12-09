@@ -65,6 +65,9 @@ router.get("/", async (req, res, next) => {
 //   }
 // });
 
+router.get("/meu-caixa-id//", async (req, res) => {
+  console.log("entrei");
+});
 router.get("/meu-caixa-id/:caixa_id/", async (req, res, next) => {
   const { caixa_id } = req.params;
   console.log("caixa-id", caixa_id);
