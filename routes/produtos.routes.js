@@ -41,6 +41,19 @@ router.post("/new/", async (req, res, next) => {
   }
 });
 
+router.get("/compraID/:compraID", async (req, res) => {
+  const { compraID } = req.params;
+  console.log(compraID);
+
+  try {
+    const data = await Buy.findById(compraID).populate("produto_id");
+    return res.status(200).json(data);
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ msg: "Produto não encontrado!" });
+  }
+});
+
 //BUSCA PRODUTO
 router.get("/busca/:term", async (req, res, next) => {
   const { term } = req.params;
