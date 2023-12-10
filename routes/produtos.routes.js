@@ -2,6 +2,7 @@ import { Router } from "express";
 import Audit from "../models/Audit.model.js";
 import * as dotenv from "dotenv";
 import Produto from "../models/Produtos.model.js";
+import Buy from "../models/Buy.model.js"
 
 dotenv.config();
 
