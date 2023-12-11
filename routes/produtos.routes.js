@@ -84,24 +84,6 @@ router.delete("/delete/:id", async (req, res) => {
   }
 });
 
-router.put("/add-price/:produto_id", async (req, res) => {
-  const { produto_id } = req.params;
-  const { value } = req.body;
-
-  try {
-    const addPrice = await Produto.findByIdAndUpdate(
-      produto_id,
-      {
-        valorCompraDb: value,
-      },
-      { new: true }
-    );
-    console.log(addPrice);
-    return res.status(201).json({ msg: "Foi adicionado o valor com sucesso!" });
-  } catch (error) {
-    return res.status(500).json({ msg: "Não foi possível alterar o produto." });
-  }
-});
 router.put("/edit/:id", async (req, res) => {
   const { id } = req.params;
   const { description } = req.body;
