@@ -6,8 +6,8 @@ const produtos = new Schema(
     description: { type: String, required: true },
     brand: { type: String, required: true },
     qtd: { type: Number, default: 0 },
-    valorCompraDb: { type: Number },
-    valorVendaDb: { type: Number },
+    valorCompraDb: { type: Number }, //only if has no imei
+    valorVendaDb: { type: Number }, //only if has no imei
     hasImei: { type: String },
   },
   { timestamps: true }

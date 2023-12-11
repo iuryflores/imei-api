@@ -16,9 +16,9 @@ const buys = new Schema(
         validator: Number.isFinite, // Valida se é um número finito (double)
         message: "{VALUE} não é um número finito (double)",
       },
-    },
-    sellPrice: { type: Number, required: true },
-    priceTotal: { type: Number, required: true },
+    }, // preço de custo individual
+    sellPrice: { type: Number, required: true }, // preço de venda individual
+    priceTotal: { type: Number, required: true }, // preço da venda total
     fornecedor_id: { type: Schema.Types.ObjectId, ref: "Fornecedor" },
     status: { type: Boolean, default: true },
     dateBuy: { type: Date, default: Date.now },
