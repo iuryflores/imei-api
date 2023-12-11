@@ -27,28 +27,28 @@ router.put("/add-price/:buy_id", async (req, res) => {
   const { buy_id } = req.params;
   const { priceDb, priceVendaDb } = req.body;
   console.log(req.body);
-  // try {
-  //   await Buy.findByIdAndUpdate(
-  //     buy_id,
-  //     {
-  //       price: priceDb,
-  //       sellPrice: priceVendaDb,
-  //     },
-  //     { new: true }
-  //   );
-  //   await Imei.findOneAndUpdate(
-  //     { buy_id },
-  //     {
-  //       buy_price: priceDb,
-  //       sell_price: priceVendaDb,
-  //     },
-  //     { new: true }
-  //   );
-  //   return res.status(201).json({ msg: "Preço adicionado com sucesso!" });
-  // } catch (error) {
-  //   console.log(error);
-  //   return res.status(500).json(error);
-  // }
+  try {
+    await Buy.findByIdAndUpdate(
+      buy_id,
+      {
+        price: priceDb,
+        sellPrice: priceVendaDb,
+      },
+      { new: true }
+    );
+    await Imei.findOneAndUpdate(
+      { buy_id },
+      {
+        buy_price: priceDb,
+        sell_price: priceVendaDb,
+      },
+      { new: true }
+    );
+    return res.status(201).json({ msg: "Preços adicionados com sucesso!" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
 });
 //ADD COMPRA
 router.post("/new/", async (req, res, next) => {
